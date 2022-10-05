@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato&display=swap'); 
+
+html, body, [class*="css"] {
+    font-family: 'Lato', sans-serif; 
+    font-size: 18px;
+    font-weight: 500;
+    color: #091747;
+}
+
+/* Header */
+.css-hpiwok{
+    display: none;
+}
+/* Footer */
+.css-179c97w{
+    display: block;
+    color: rgba(0, 0, 0, 0.4);
+    flex: 0 1 0%;
+    font-size: 14px;
+    max-width: 99999rem;
+    padding: 10px 0px 10px 100px;
+    width: 100%; 
+    background-color: #7C83AA;
+}
+
+
+/* Body */
+.css-12oz5g7{
+    max-width: 999rem;
+    padding: 0rem;
+}
+/* Within Body hack */
+.e1tzin5v0{
+    width: 1080p;
+    position: relative;
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    gap: 0rem;
+}
+
+/* Text Pre Processing */
+.css-10trblm{
+    color: #B43C4E;
+    font-size: 28.8;
+    background-color: #7C83AA;
+    font-size: 40px;
+    line-height: 1.2;
+    padding: 10px 0px 10px 100px;
+}
+
+h1{
+    padding: 0px;
+}
+
+
