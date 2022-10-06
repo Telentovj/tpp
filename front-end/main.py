@@ -67,9 +67,9 @@ if st.session_state["currentPage"] is "faqPage":
     with faqPage:
         option = st.selectbox(
             'Frequently Asked Questions',
-            ('How to do this?', 'How to do that?', 'How to do those?'))
+            ('How to format my excel file?', 'How to do that?', 'How to do those?'))
         st.write(option)
-        if option == 'How to do this?':
+        if option == 'How to format my excel file?':
             st.write('Answer for: '+ option)
         if option == 'How to do that?':
             st.write('Answer for: '+ option)
