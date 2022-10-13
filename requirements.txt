@@ -1,3 +1,7 @@
 pyLDAvis 
 streamlit
 pandas
+joblib==1.1.0
+bertopic
+bertopic[visualization]
+Top2Vec
