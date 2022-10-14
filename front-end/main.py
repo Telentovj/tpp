@@ -1,12 +1,10 @@
 from distutils.command.upload import upload
 import streamlit as st
 import time
-
+from models.topic_models import *
 
 with open( "styles.css" ) as css:
     st.markdown( f'<style>{css.read()}</style>' , unsafe_allow_html= True)
-
-
 
 if "currentPage" not in st.session_state:
     st.session_state.currentPage = "mainPage"
@@ -16,6 +14,9 @@ mainPage = st.empty()
 faqPage = st.empty()
 insightPage = st.empty()
 
+
+def change_page(page):
+    st.session_state.currentPage = page
 
 # Main page 
 if st.session_state.currentPage == "mainPage":
@@ -45,20 +46,18 @@ if st.session_state.currentPage == "mainPage":
         format_btn = st.markdown("<h3 style='text-align: center; font-size: 14px;'>Unsure about how to format your text data?<h3>", unsafe_allow_html=True)
         col1, col2, col3 = st.columns([1,1,1])
 
-        faq = col2.button("Read our FAQs for a quick guide!", key = "faq")
-        if faq:
-            st.session_state.currentPage = "faqPage"
-            st.write('Click again to focus on the Faqs!')
-            st.markdown("""---""")
+        faq = col2.button("Read our FAQs for a quick guide!", on_click=change_page, args=("faqPage", ))
+        # if faq:
+        #     print(f"ran in if {st.session_state.currentPage}")
+        #     st.session_state.currentPage = "faqPage"
+        #     print(f"ran in if {st.session_state.currentPage}")
+        #     st.write('Click again to focus on the Faqs!')
+        #     st.markdown("""---""")
 
 
 
 
 
-
-
-        
-            
 
 
 # FAQ page
@@ -99,4 +98,3 @@ if st.session_state["currentPage"] is "insightPage":
         if st.button("Input another file"):
             st.write("Are you sure you want to leave the page?")
             st.session_state.currentPage = "mainPage"
-            
