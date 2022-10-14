@@ -68,7 +68,7 @@ docs = list(processed_docs)
 #                             NMF                              #
 ################################################################
 ### NOTE: Important, need to convert the processed docs to array before
-# inputting into NMF.
+# inputting into NMF
 
 docs_arr = np.asarray(docs)
 
