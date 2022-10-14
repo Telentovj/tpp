@@ -60,9 +60,35 @@ print('\n\n tokenized and lemmatized document: ')
 print(preprocess(doc_sample))
 
 processed_docs = text["text"].map(preprocess)
+processed_docs_tokenized = [x.split() for x in processed_docs]
+
 
 docs = list(processed_docs)
 
+################################################################
+#                         WordCloud                            #
+################################################################
+
+def wordcloud(df):
+  comment_words = ''
+
+  for val in df:
+      
+    comment_words += " ".join(val)+" "
+  
+  wordcloud = WordCloud(width = 800, height = 800,
+                  background_color ='white',
+                  stopwords = gensim.parsing.preprocessing.STOPWORDS,
+                  min_font_size = 10).generate(comment_words)
+  
+  # plot the WordCloud image                      
+  plt.figure(figsize = (8, 8), facecolor = None)
+  plt.imshow(wordcloud)
+  plt.axis("off")
+  plt.tight_layout(pad = 0)
+  
+  plt.show()
+  return wordcloud
 
 ################################################################
 #                             NMF                              #
@@ -167,6 +193,27 @@ def run_nmf(docs, num_topics):
 ################################################################
 #                             LDA                              #
 ################################################################
+# !pip install pyLDAvis -qq
+import pyLDAvis.gensim_models
+
+def lda(df):
+
+  dictionary = gensim.corpora.Dictionary(df)
+  dictionary.filter_extremes(no_below=15, no_above=0.5, keep_n=100000)
+  bow_corpus = [dictionary.doc2bow(doc) for doc in df]
+  lda_model = gensim.models.LdaMulticore(bow_corpus, num_topics=5, id2word=dictionary, passes=2, workers=2)
+
+  return [lda_model,bow_corpus]
+
+def topic_term(lda):
+    for idx, topic in lda.print_topics(-1):
+        print('Topic: {} \nWords: {}'.format(idx, topic))
+
+def lda_display(lda_model, bow_corpus, dictionary):
+    
+    pyLDAvis.enable_notebook()# Visualise inside a notebook
+    lda_display = pyLDAvis.gensim_models.prepare(lda_model, bow_corpus, dictionary)
+    pyLDAvis.display(lda_display)
 
 
 ################################################################
