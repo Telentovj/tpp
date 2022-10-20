@@ -48,6 +48,7 @@ if st.session_state.currentPage == "mainPage":
                 mime='text/csv',
             )
 
+
             my_bar = st.progress(0)
             for percent_complete in range(100):
                 time.sleep(0.005)
@@ -57,8 +58,10 @@ if st.session_state.currentPage == "mainPage":
                     col1, col2, col3 = st.columns([1, 1, 1])
                     st.markdown("""---""")
                     insight = col2.button("Click here to focus on the insights that has be found!",
-                                          on_click=change_page, args=("insightPage", ))
-
+                        on_click=change_page, args=("insightPage", ))
+        
+        format_btn = st.markdown(
+            "<h3 style='text-align: center; font-size: 14px;'>Unsure about how to format your text data?<h3>", unsafe_allow_html=True)
         col1, col2, col3 = st.columns([1, 1, 1])
 
         faq = col2.button("Read our FAQs for a quick guide!",
@@ -81,7 +84,8 @@ if st.session_state["currentPage"] == "faqPage":
             st.write('Answer for: ' + option)
 
         close_faq = st.button("Close Faqs",
-                              on_click=change_page, args=("mainPage", ))
+                          on_click=change_page, args=("mainPage", ))
+
 
 
 # Insights page
@@ -99,4 +103,4 @@ if st.session_state["currentPage"] == "insightPage":
             st.write('Answer for: ' + option)
 
         go_back = st.button("Input another file",
-                            on_click=change_page, args=("mainPage", ))
+                on_click=change_page, args=("mainPage", ))
