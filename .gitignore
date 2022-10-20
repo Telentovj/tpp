@@ -1,5 +1,5 @@
-.DS_Store
-.streamlit
-
 /topic_models/datasets
-/topics_models/__pycache__
+/topic_models/__pycache__
+
+.streamlit
+.DS_Store
