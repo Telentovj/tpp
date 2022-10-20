@@ -44,6 +44,13 @@ def plot_top_words(model, feature_names, n_top_words, title):
     plt.subplots_adjust(top=0.90, bottom=0.05, wspace=0.90, hspace=0.3)
     plt.show()
 
+def get_tfidf_vectorizer():
+    tfidf_params = {'min_df': 0.0008, 
+                    'max_df': 0.90, 
+                    'max_features': 500, 
+                    'norm': 'l1'}
+    return TfidfVectorizer(**tfidf_params)
+
 def run_nmf(docs, num_topics):
     '''
     Parameters
@@ -59,10 +66,6 @@ def run_nmf(docs, num_topics):
     nmf : sklearn.estimator
         The fitted nmf sklearn estimator instance.
     '''
-    tfidf_params = {'min_df': 0.0008, 
-                    'max_df': 0.90, 
-                    'max_features': 500, 
-                    'norm': 'l1'}
     nmf_params = {'n_components': num_topics, 
                 'alpha_W': 3.108851387228361e-05, 
                 'alpha_H': 8.312434671077156e-05, 
@@ -74,7 +77,7 @@ def run_nmf(docs, num_topics):
                 'random_state': 4013, 
                 'tol': 0.0001}
     
-    tfidf_vectorizer = TfidfVectorizer(**tfidf_params)
+    tfidf_vectorizer = get_tfidf_vectorizer()
     tfidf = tfidf_vectorizer.fit_transform(docs)
 
     tfidf_feature_names = tfidf_vectorizer.get_feature_names_out()
@@ -98,17 +101,43 @@ def run_nmf(docs, num_topics):
 
     return nmf
 
-def get_top_docs_nmf(docs, W, num_topics, k):
-    tmp = pd.DataFrame(W)
+def get_top_docs_nmf(docs, model, num_topics, k):
+    '''
+    Parameters
+    ----------
+    docs : np.array
+        An array of documents. Note that each document is a string of the processed text.
+        This is same as input into run_nmf.
+    
+    model : sklearn.estimator
+        The fitted nmf estimator returned from run_nmf. 
 
-    tmp['topic'] = tmp.apply(lambda r: r.argmax(), axis=1)
-    tmp['topic_score'] = tmp.apply(lambda r: r[:num_topics].max(), axis=1)
-    tmp['doc'] = tmp.index
+    num_topics : int
+        Number of topics learned.
+    
+    k : int
+        The top k number of docs will be taken from each topic's docs.
+    
+    Returns
+    ----------
+    top_k_docs : list
+        Array of top scoring sample docs for the topics.
+    '''
+
+    tfidf_vectorizer = get_tfidf_vectorizer()
+    tfidf = tfidf_vectorizer.fit_transform(docs)
+
+    W = model.fit_transform(tfidf)
+    W = pd.DataFrame(W)
+
+    W['topic'] = W.apply(lambda r: r.argmax(), axis=1)
+    W['topic_score'] = W.apply(lambda r: r[:num_topics].max(), axis=1)
+    W['doc'] = W.index
 
     docs_idx = []
 
-    for topic in tmp.topic.unique():
-        top_k_docs_df = tmp[tmp.topic == topic].sort_values('topic_score', ascending=False)[:k]
+    for topic in W.topic.unique():
+        top_k_docs_df = W[W.topic == topic].sort_values('topic_score', ascending=False)[:k]
         docs_idx.extend(list(top_k_docs_df.doc))
     
     top_k_docs = list(docs[docs_idx])
