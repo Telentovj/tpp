@@ -1,6 +1,6 @@
 import streamlit as st
 import time
-# from models.topic_models import *
+from topic_models.topic_models import *
 
 with open("styles.css") as css:
     st.markdown(f'<style>{css.read()}</style>', unsafe_allow_html=True)
@@ -30,6 +30,8 @@ if st.session_state.currentPage == "mainPage":
         uploaded_file = st.file_uploader("", key="enabled")
 
         if uploaded_file is not None:
+            df = load_data(uploaded_file)
+            docs, docs_tokenized = preprocess_data(df) # Model inputs here
             my_bar = st.progress(0)
             for percent_complete in range(100):
                 time.sleep(0.005)

@@ -1,12 +1,17 @@
 ################################################################
 #                         LOADING DATA                         #
 ################################################################
-import sys
 import pandas as pd
 
-file_path = "models/datasets/Guardianship1.csv"
+def load_data(file, ):
+    """
+    Args:
+    - file: Streamlit File Object or String for file path
 
-df = pd.read_csv(file_path)
+    Returns:
+    - Pandas dataframe
+    """
+    return pd.read_csv(file)
 
 ################################################################
 #                      DATA PREPROCESSING                      #
@@ -24,46 +29,63 @@ nltk.download('omw-1.4')
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 
+def _clean_data(df):
+    """
+    Preprocesses data by removing na values, words associated with @ and # 
+    as well as http[s] links
 
-df["text"] = df["text"].str.lower()
-df["text"] = df["text"].replace("na", None)
-text = df[~df["text"].isna()][['text']]
+    Args:
+    - df: pandas dataframe
 
-# Remove @, # and links
-text["text"] = text["text"].str.replace(r"@[A-Za-z0-9_]+",'', regex=True)
-text["text"] = text["text"].str.replace(r"#[A-Za-z0-9_]+",'', regex=True)
-text["text"] = text["text"].str.replace(r"http[s]?://\S+",'', regex=True)
+    Returns:
+    - Cleaned text in the form of a pandas dataframe with row number and text
+    """
+    df["text"] = df["text"].str.lower()
+    df["text"] = df["text"].replace("na", None)
+    text = df[~df["text"].isna()][['text']]
 
-added_stopwords = ["http", "bgaabha", "bgaabhdit"] # to be changed based on context
+    # Remove @, # and links
+    text["text"] = text["text"].str.replace(r"@[A-Za-z0-9_]+",'', regex=True)
+    text["text"] = text["text"].str.replace(r"#[A-Za-z0-9_]+",'', regex=True)
+    text["text"] = text["text"].str.replace(r"http[s]?://\S+",'', regex=True)
 
-def lemmatize(text):
-  return WordNetLemmatizer().lemmatize(text, pos='v')
+    return text
 
-def preprocess(text):
-  result = ''
-  text=str(text)
-  token_words = gensim.utils.simple_preprocess(text)
-  for token in token_words:
-    if token not in gensim.parsing.preprocessing.STOPWORDS and token not in added_stopwords and len(token) > 3:
-      result = result + ' ' + lemmatize(token)
-  return result
+def _lemmatize(text):
+    return WordNetLemmatizer().lemmatize(text, pos='v')
 
-# Example
-doc_sample = text[text.index == 2].values[0][0]
-print('original document: ')
-words = []
-for word in doc_sample.split(' '):
-  words.append(word)
+def _preprocess(text):
+    """
+    Args:
+    - text: String
 
-print(doc_sample)
-print('\n\n tokenized and lemmatized document: ')
-print(preprocess(doc_sample))
+    Returns:
+    - Cleaned text: String
+    """
+    result = ''
+    text=str(text)
+    token_words = gensim.utils.simple_preprocess(text)
+    for token in token_words:
+        if token not in gensim.parsing.preprocessing.STOPWORDS and len(token) > 3:
+            result = result + ' ' + _lemmatize(token)
+    return result
 
-processed_docs = text["text"].map(preprocess)
-processed_docs_tokenized = [x.split() for x in processed_docs]
+def preprocess_data(df):
+    """
+    Args:
+    - df: pandas dataframe
 
+    Returns:
+    - Pair of two arrays docs and docs_tokenized
+        - docs: list of strings (sentences)
+        - docs_tokenized: list of tokenized words (bag of words)
+    """
+    text = _clean_data(df)
+    processed_docs = text["text"].map(_preprocess)
+    docs_tokenized = [x.split() for x in processed_docs]
+    docs = list(processed_docs)
 
-docs = list(processed_docs)
+    return (docs, docs_tokenized)
 
 ################################################################
 #                         WordCloud                            #
@@ -96,7 +118,7 @@ def wordcloud(df):
 ### NOTE: Important, need to convert the processed docs to array before
 # inputting into NMF
 
-docs_arr = np.asarray(docs)
+# docs_arr = np.asarray(docs)
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import NMF
