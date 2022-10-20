@@ -32,17 +32,13 @@ def printWordBar(model, numTopic):
     sns.set(rc={'figure.figsize':(11.7,12)}) 
     ax = sns.barplot(x="Probability", y="Topic Words", data=df, palette="mako").set(title='Topic ' + str(i))
 
-def getTopNDocumentsInTopicK(model, N, K):
-  array = []
-  documents, document_scores, document_ids = model.search_documents_by_topic(topic_num = K, num_docs = N, reduced = True)
-  for doc,score, doc_id in zip(documents, document_scores, document_ids):
-    array.append(doc)
-  return array
-
-
-def getTopNDocumentsForAllTopics(model, N, K):
-  array = []
-  for i in range(K):
-    arrayForTopici = getTopNDocumentsInTopicK(model, N, i)
-    array.append(arrayForTopici)
-  return array
+def get_top_documents_Top2Vec(df, model, num_topics, k):
+    samples = []
+    for topic_num in range(0, num_topics):
+        documents = documents, document_scores, document_ids = model.search_documents_by_topic(topic_num = topic_num, num_docs = k, reduced = True)
+        for index, doc in enumerate(documents):
+            if index > k:
+                break
+            sample = df.loc[df['processed'] == doc]['text'].values[0]
+            samples.append(sample)
+    return samples
