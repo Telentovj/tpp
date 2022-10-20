@@ -2,7 +2,7 @@
 
 > Important note: Please create your own branch when working on changes, don't need to do PR but also don't override master
 
-### Setting up
+## Setting up
 
 Install dependencies
 
@@ -16,7 +16,7 @@ For running front end
 streamlit run main.py
 ```
 
-### File Structure
+## File Structure
 
 ```ml
 .
