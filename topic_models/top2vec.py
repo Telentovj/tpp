@@ -1,6 +1,7 @@
 import pandas as pd
 from top2vec import Top2Vec
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 #docs is a string array of documents, numTopic is an integer
 def runTop2Vec(docs):
@@ -19,7 +20,6 @@ def printWordCloud(model, numTopic):
         Top2Vec.generate_topic_wordcloud(
             model, i, background_color="black", reduced=True)
         
-import seaborn as sns
 #print topic word score barchart
 def printWordBar(model, numTopic):
   for i in range(numTopic):
@@ -31,3 +31,18 @@ def printWordBar(model, numTopic):
     plt.figure()
     sns.set(rc={'figure.figsize':(11.7,12)}) 
     ax = sns.barplot(x="Probability", y="Topic Words", data=df, palette="mako").set(title='Topic ' + str(i))
+
+def getTopNDocumentsInTopicK(model, N, K):
+  array = []
+  documents, document_scores, document_ids = model.search_documents_by_topic(topic_num = K, num_docs = N, reduced = True)
+  for doc,score, doc_id in zip(documents, document_scores, document_ids):
+    array.append(doc)
+  return array
+
+
+def getTopNDocumentsForAllTopics(model, N, K):
+  array = []
+  for i in range(K):
+    arrayForTopici = getTopNDocumentsInTopicK(model, N, i)
+    array.append(arrayForTopici)
+  return array
