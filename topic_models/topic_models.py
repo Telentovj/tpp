@@ -4,7 +4,7 @@
 import sys
 import pandas as pd
 
-file_path = sys.argv[1]
+file_path = "models/datasets/Guardianship1.csv"
 
 df = pd.read_csv(file_path)
 

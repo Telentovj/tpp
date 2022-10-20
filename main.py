@@ -23,7 +23,7 @@ if st.session_state.currentPage == "mainPage":
     mainPage = st.container()
     with mainPage:
         col1, col2, col3 = st.columns([0.5, 0.1, 0.5])
-        col2.image("csv-svgrepo-com 1csv.png", use_column_width=True)
+        col2.image("csv.png", use_column_width=True)
         st.markdown(
             "<h2 style='text-align: center;font-size: 24px;'>Preprocess your text data</h2>", unsafe_allow_html=True)
 
