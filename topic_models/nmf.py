@@ -101,10 +101,13 @@ def run_nmf(docs, num_topics):
 
     return nmf
 
-def get_top_docs_nmf(docs, model, num_topics, k):
+def get_top_docs_nmf(df, docs, model, num_topics, k):
     '''
     Parameters
     ----------
+    df : pd.DataFrame
+        Original dataframe with 'text' column.
+    
     docs : np.array
         An array of documents. Note that each document is a string of the processed text.
         This is same as input into run_nmf.
@@ -139,7 +142,7 @@ def get_top_docs_nmf(docs, model, num_topics, k):
     for topic in W.topic.unique():
         top_k_docs_df = W[W.topic == topic].sort_values('topic_score', ascending=False)[:k]
         docs_idx.extend(list(top_k_docs_df.doc))
-    
-    top_k_docs = list(docs[docs_idx])
+
+    top_k_docs = list(df.loc[docs_idx, 'text'].values[0])
 
     return top_k_docs
