@@ -1,3 +1,4 @@
+import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import NMF
@@ -96,3 +97,20 @@ def run_nmf(docs, num_topics):
     plot_top_words(nmf, tfidf_feature_names, 10, "Topics in NMF model (KL Divergence Loss)")
 
     return nmf
+
+def get_top_docs_nmf(docs, W, num_topics, k):
+    tmp = pd.DataFrame(W)
+
+    tmp['topic'] = tmp.apply(lambda r: r.argmax(), axis=1)
+    tmp['topic_score'] = tmp.apply(lambda r: r[:num_topics].max(), axis=1)
+    tmp['doc'] = tmp.index
+
+    docs_idx = []
+
+    for topic in tmp.topic.unique():
+        top_k_docs_df = tmp[tmp.topic == topic].sort_values('topic_score', ascending=False)[:k]
+        docs_idx.extend(list(top_k_docs_df.doc))
+    
+    top_k_docs = list(docs[docs_idx])
+
+    return top_k_docs
