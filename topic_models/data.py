@@ -22,7 +22,8 @@ def load_data(file, ):
     Returns:
     - Pandas dataframe
     """
-    return pd.read_csv(file)
+    df = pd.read_csv(file)
+    return df
 
 ################################################################
 #                      DATA PREPROCESSING                      #
@@ -74,16 +75,16 @@ def preprocess_data(df):
     - df: pandas dataframe
 
     Returns:
-    - Pair of two arrays docs and docs_tokenized
+    - text: pandas dataframe and pair of two arrays docs and docs_tokenized
         - docs: list of strings (sentences)
         - docs_tokenized: list of tokenized words (bag of words)
     """
     text = _clean_data(df)
-    processed_docs = text["text"].map(_preprocess)
-    docs_tokenized = [x.split() for x in processed_docs]
-    docs = list(processed_docs)
+    text["processed"] = text["text"].map(_preprocess)
+    docs_tokenized = [x.split() for x in text["processed"]]
+    docs = list(text["processed"])
 
-    return (docs, docs_tokenized)
+    return (text, docs, docs_tokenized)
 
 ################################################################
 #                         WordCloud                            #
@@ -109,3 +110,13 @@ def wordcloud(df):
   
   plt.show()
   return wordcloud
+
+################################################################
+#                       HELPER FUNCTIONS                       #
+################################################################
+def samples_to_csv(samples):
+    """
+    Converts list of samples to output an encoded csv for streamlit
+    """
+    df = pd.DataFrame(samples, columns=["text"])
+    return df.to_csv().encode('utf-8')

@@ -1,6 +1,10 @@
 import streamlit as st
 import time
-from topic_models.topic_models import *
+from topic_models.data import *
+from topic_models.bertopic import *
+from topic_models.lda import *
+from topic_models.top2vec import *
+from topic_models.nmf import *
 
 with open("styles.css") as css:
     st.markdown(f'<style>{css.read()}</style>', unsafe_allow_html=True)
@@ -31,7 +35,20 @@ if st.session_state.currentPage == "mainPage":
 
         if uploaded_file is not None:
             df = load_data(uploaded_file)
-            docs, docs_tokenized = preprocess_data(df) # Model inputs here
+            df, docs, docs_tokenized = preprocess_data(df)
+            st.session_state["dataframe"] = df
+            bert = run_bertopic(docs, 3)
+            samples = get_top_documents(df, bert, 3, 3)
+            csv = samples_to_csv(samples)
+
+            st.download_button(
+                label="Download data as CSV",
+                data=csv,
+                file_name='test.csv',
+                mime='text/csv',
+            )
+
+
             my_bar = st.progress(0)
             for percent_complete in range(100):
                 time.sleep(0.005)
@@ -52,7 +69,7 @@ if st.session_state.currentPage == "mainPage":
 
 
 # FAQ page
-if st.session_state["currentPage"] is "faqPage":
+if st.session_state["currentPage"] == "faqPage":
     faqPage = st.container()
     with faqPage:
         option = st.selectbox(
@@ -73,8 +90,7 @@ if st.session_state["currentPage"] is "faqPage":
 
 # Insights page
 
-if st.session_state["currentPage"] is "insightPage":
-
+if st.session_state["currentPage"] == "insightPage":
     insightPage = st.container()
     with insightPage:
         option = st.selectbox(
