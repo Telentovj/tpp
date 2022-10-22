@@ -21,7 +21,7 @@ def run_lda(docs_tokenized, num_topics):
 
   return (lda_model, bow_corpus)
 
-def get_top_documents(df, bow_corpus, model, num_topics, k):
+def get_top_documents_lda(df, bow_corpus, model, num_topics, k):
 
     """
     Args:
@@ -51,7 +51,7 @@ def get_topic_lda(model, topic_num):
     """
     return model.show_topic(topic_num)
 
-def get_topic_freq(df, bow_corpus, model):
+def get_topic_freq_lda(df, bow_corpus, model):
 
     """
         Return a Series object whereby the value is the size of the topics (in descending order) with the index as the topic number
