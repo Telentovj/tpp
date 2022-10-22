@@ -12,14 +12,16 @@ def run_lda(docs_tokenized, num_topics):
         num_topics -> int
 
         Returns:
-        - Trained "model" that can be used to return visualizations and stats
+        - lda_model:Trained "model" that can be used to return visualizations and stats
+        - bow_corpus: dataset in bag of words form
+        - dictionary: dictionary of tokens and their id
   """
   dictionary = gensim.corpora.Dictionary(docs_tokenized)
   dictionary.filter_extremes(no_below=15, no_above=0.5, keep_n=100000)
   bow_corpus = [dictionary.doc2bow(doc) for doc in docs_tokenized]
   lda_model = gensim.models.LdaMulticore(bow_corpus, num_topics=num_topics, id2word=dictionary, passes=2, workers=2)
 
-  return (lda_model, bow_corpus)
+  return (lda_model, bow_corpus, dictionary)
 
 def get_top_documents_lda(df, bow_corpus, model, num_topics, k):
 
