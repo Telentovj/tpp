@@ -7,3 +7,4 @@ bertopic[visualization]
 Top2Vec
 gensim
 seaborn
+pyLDAvis
