@@ -105,14 +105,7 @@ if st.session_state["currentPage"] == "faq_page":
         option = st.selectbox(
             'Frequently Asked Questions',
             ('How to format my excel file?', 'How to do that?', 'How to do those?'))
-        st.write(option)
-        if option == 'How to format my excel file?':
-            st.write('Answer for: ' + option)
-        if option == 'How to do that?':
-            st.write('Answer for: ' + option)
-        if option == 'How to do those?':
-            st.write('Answer for: ' + option)
-
+        st.write('Answer for: ' + option)
         close_faq = st.button("Close Faqs",
                               on_click=change_page, args=("main_page", ))
 
