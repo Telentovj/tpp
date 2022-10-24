@@ -54,7 +54,7 @@ if st.session_state.currentPage == "main_page":
         )
 
         # File uploader
-        uploaded_file = st.file_uploader("", key="enabled")
+        uploaded_file = st.file_uploader("",type=['csv', 'xlsx'] , key="enabled")
 
         # add logic to ensure that number of topics is not None
         if uploaded_file is not None:
@@ -62,7 +62,7 @@ if st.session_state.currentPage == "main_page":
                 number_of_topics = math.floor(number_of_topics)
                 st.session_state['number_of_topics'] = number_of_topics
 
-                df = load_data(uploaded_file)
+                df = load_data(uploaded_file, uploaded_file.name)
                 df, docs, docs_tokenized = preprocess_data(df)
                 st.session_state["dataframe"] = df
                 st.session_state["docs"] = docs
