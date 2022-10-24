@@ -1,7 +1,5 @@
-from cProfile import label
 import streamlit as st
 import math
-import time
 from topic_models.data import *
 from topic_models.bertopic import *
 from topic_models.lda import *
@@ -88,8 +86,8 @@ if st.session_state.currentPage == "main_page":
                 # top2vec = runTop2Vec(docs)
                 # st.session_state["top2vec"] = top2vec
 
-
-                insight = col2.button(
+                insight1, insight2, insight3 = st.columns([1, 1.5, 1])
+                insight = insight2.button(
                         "Click here to focus on the insights that has be found!",
                         on_click=change_page, 
                         args=("insight_page",)
@@ -105,14 +103,7 @@ if st.session_state["currentPage"] == "faq_page":
         option = st.selectbox(
             'Frequently Asked Questions',
             ('How to format my excel file?', 'How to do that?', 'How to do those?'))
-        st.write(option)
-        if option == 'How to format my excel file?':
-            st.write('Answer for: ' + option)
-        if option == 'How to do that?':
-            st.write('Answer for: ' + option)
-        if option == 'How to do those?':
-            st.write('Answer for: ' + option)
-
+        st.write('Answer for: ' + option)
         close_faq = st.button("Close Faqs",
                               on_click=change_page, args=("main_page", ))
 
