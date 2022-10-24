@@ -12,26 +12,29 @@ with open("styles.css") as css:
     st.markdown(f'<style>{css.read()}</style>', unsafe_allow_html=True)
 
 if "currentPage" not in st.session_state:
-    st.session_state.currentPage = "mainPage"
+    st.session_state.currentPage = "main_page"
 
 st.title("Text Pre Processing")
-mainPage = st.empty()
-faqPage = st.empty()
-insightPage = st.empty()
-downloadPage = st.empty()
+main_page = st.empty()
+faq_page = st.empty()
+insight_page = st.empty()
+download_page = st.empty()
 
 def change_page(page):
     st.session_state.currentPage = page
 
 def set_topic_model(model):
-    st.session_state.topicModel = model
-    change_page("downloadPage")
+    if st.session_state['k']:
+        st.session_state.topicModel = model
+        change_page("download_page")
+    else:
+        st.warning("Set number of topics.")
 
 
 # Main page
-if st.session_state.currentPage == "mainPage":
-    mainPage = st.container()
-    with mainPage:
+if st.session_state.currentPage == "main_page":
+    main_page = st.container()
+    with main_page:
         col1, col2, col3 = st.columns([0.5, 0.1, 0.5])
         col2.image("csv.png", use_column_width=True)
         st.markdown(
@@ -40,14 +43,14 @@ if st.session_state.currentPage == "mainPage":
         # Faqs
         col1, col2, col3 = st.columns([1, 0.55, 1])
         faq = col2.button("Read our FAQs!",
-                          on_click=change_page, args=("faqPage", ))
+                          on_click=change_page, args=("faq_page", ))
         
         # Input for number of topics 
         number_of_topics = st.number_input(
             'Insert number of Topics, decimals will be rounded down.',
             min_value = 0, 
             max_value= 10,
-            value = 4,
+            value = 3,
         )
 
         # File uploader
@@ -62,7 +65,7 @@ if st.session_state.currentPage == "mainPage":
                 df = load_data(uploaded_file)
                 df, docs, docs_tokenized = preprocess_data(df)
                 st.session_state["dataframe"] = df
-                st.session_state["doc"] = docs
+                st.session_state["docs"] = docs
                 
                 # Bert logic
                 bert = run_bertopic(docs, 4)
@@ -85,24 +88,20 @@ if st.session_state.currentPage == "mainPage":
                 # top2vec = runTop2Vec(docs)
                 # st.session_state["top2vec"] = top2vec
 
-                my_bar = st.progress(0)
-                for percent_complete in range(100):
-                    time.sleep(0.005)
-                    my_bar.progress(percent_complete + 1)
-                    if percent_complete == 99:
-                        my_bar.empty()
-                        st.markdown("""---""")
-                        col1, col2, col3 = st.columns([1, 1, 1])
-                        insight = col2.button("Click here to focus on the insights that has be found!",
-                                            on_click=change_page, args=("insightPage", ))
+
+                insight = col2.button(
+                        "Click here to focus on the insights that has be found!",
+                        on_click=change_page, 
+                        args=("insight_page",)
+                    )
             else:
                 st.warning('Please insert the number of topics.')
             
 
 # FAQ page
-if st.session_state["currentPage"] == "faqPage":
-    faqPage = st.container()
-    with faqPage:
+if st.session_state["currentPage"] == "faq_page":
+    faq_page = st.container()
+    with faq_page:
         option = st.selectbox(
             'Frequently Asked Questions',
             ('How to format my excel file?', 'How to do that?', 'How to do those?'))
@@ -115,15 +114,15 @@ if st.session_state["currentPage"] == "faqPage":
             st.write('Answer for: ' + option)
 
         close_faq = st.button("Close Faqs",
-                              on_click=change_page, args=("mainPage", ))
+                              on_click=change_page, args=("main_page", ))
 
 
 # Insights page
-if st.session_state["currentPage"] == "insightPage":
-    insightPage = st.container()
+if st.session_state["currentPage"] == "insight_page":
+    insight_page = st.container()
     number_of_topics = st.session_state['number_of_topics']
 
-    with insightPage:
+    with insight_page:
         
         #BERT
         bert = st.session_state['bert']
@@ -175,20 +174,18 @@ if st.session_state["currentPage"] == "insightPage":
 
 
 # Download Page
-if st.session_state["currentPage"] == "downloadPage":
-
-    downloadPage = st.container()
+if st.session_state["currentPage"] == "download_page":
+    download_page = st.container()
     topic_model = st.session_state["topicModel"]
     number_of_topics = st.session_state["number_of_topics"]
-    bow_corpus = st.session_state["bow_corpus"]
-    docs = , st.sessions_state['docs']
+    # bow_corpus = st.session_state["bow_corpus"]
+    docs = st.session_state['docs']
     df = st.session_state["dataframe"]
     k  = st.session_state['k'] 
 
-
     if topic_model == "bert":
         bert = st.session_state['bert']
-        samples = get_top_documents_bert(df, bert, 3, 3)
+        samples = get_top_documents_bert(df, bert, number_of_topics, k)
         labeled_csv = samples_to_csv(samples)
 
     if topic_model == "top2vec":
@@ -206,7 +203,7 @@ if st.session_state["currentPage"] == "downloadPage":
         samples = get_top_docs_nmf(df, nmf, number_of_topics, k)
         labeled_csv = samples_to_csv
 
-    with downloadPage:
+    with download_page:
         st.write("Download dataset labeled with: " + topic_model)
         st.download_button(
             label = "Download data as CSV",
@@ -215,4 +212,4 @@ if st.session_state["currentPage"] == "downloadPage":
             mime = 'text/csv',
         )
         go_back = st.button("Input another file",
-                            on_click=change_page, args=("mainPage", ))
+                            on_click=change_page, args=("main_page", ))
