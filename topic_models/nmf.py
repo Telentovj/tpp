@@ -65,6 +65,8 @@ def run_nmf(docs, num_topics):
     ----------
     nmf : sklearn.estimator
         The fitted nmf sklearn estimator instance.
+    tfidf_feature_names: list[str]
+        Vocabulary to aid visualisation.
     '''
     nmf_params = {'n_components': num_topics, 
                 'alpha_W': 3.108851387228361e-05, 
@@ -96,10 +98,7 @@ def run_nmf(docs, num_topics):
     W = nmf.fit_transform(tfidf)
     H = nmf.components_
 
-    ### Plot top words for each topic
-    plot_top_words(nmf, tfidf_feature_names, 10, "Topics in NMF model (KL Divergence Loss)")
-
-    return nmf
+    return nmf, tfidf_feature_names
 
 def get_top_docs_nmf(df, docs, model, num_topics, k):
     '''

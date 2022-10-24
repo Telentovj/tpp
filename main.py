@@ -46,6 +46,7 @@ if st.session_state.currentPage == "mainPage":
             'Insert number of Topics, decimals will be rounded down.',
             min_value = 0, 
             max_value= 10,
+            value = 4,
         )
 
         # File uploader
@@ -55,6 +56,8 @@ if st.session_state.currentPage == "mainPage":
         if uploaded_file is not None:
             if number_of_topics:
                 number_of_topics = math.floor(number_of_topics)
+                st.session_state['number_of_topics'] = number_of_topics
+
                 df = load_data(uploaded_file)
                 df, docs, docs_tokenized = preprocess_data(df)
                 st.session_state["dataframe"] = df
@@ -62,24 +65,19 @@ if st.session_state.currentPage == "mainPage":
                 # Bert logic
                 bert = run_bertopic(docs, 4)
                 st.session_state["bert"] = bert
-                # samples = get_top_documents(df, bert, 3, 3)
-                # csv = samples_to_csv(samples)
-
-                # st.download_button(
-                #     label="Download data as CSV",
-                #     data=csv,
-                #     file_name='test.csv',
-                #     mime='text/csv',
-                # )
 
                 # Lda logic
-                lda = run_lda(docs,4)
+                # lda = run_lda(docs_tokenized,4)
+                # st.session_state["lda"] = lda
 
                 # nmf logic
-                # nmf = run_nmf(docs,4)
+                nmf,tfidf_feature_names = run_nmf(docs,4)
+                st.session_state["nmf"] = nmf
+                st.session_state["tfidf_feature_names"] = tfidf_feature_names
 
                 # top2vec logic
                 # top2vec = runTop2Vec(docs)
+                # st.session_state["top2vec"] = top2vec
 
                 my_bar = st.progress(0)
                 for percent_complete in range(100):
@@ -94,9 +92,6 @@ if st.session_state.currentPage == "mainPage":
             else:
                 st.warning('Please insert the number of topics.')
             
-
-
-
 
 # FAQ page
 if st.session_state["currentPage"] == "faqPage":
@@ -118,9 +113,9 @@ if st.session_state["currentPage"] == "faqPage":
 
 
 # Insights page
-
 if st.session_state["currentPage"] == "insightPage":
     insightPage = st.container()
+    number_of_topics = st.session_state['number_of_topics']
 
     with insightPage:
         
@@ -129,19 +124,28 @@ if st.session_state["currentPage"] == "insightPage":
         bert_expander = st.expander("Bert")
         bert_expander.write(bert.visualize_barchart().update_layout(autosize=False,width = 670,height=400))
 
-        #Top2Vec
-        Top2Vec_expander = st.expander("Top2Vec")
+        # #Top2Vec
+        # top2vec = st.session_state['top2vec']
+        # Top2Vec_expander = st.expander("Top2Vec")
 
-
-        #LDA 
-        LDA_expander = st.expander("LDA")
-
+        # #LDA 
+        # lda = st.session_state['lda']
+        # LDA_expander = st.expander("LDA")
 
         #NMF
-        NML_expander = st.expander("NMF")
+        nmf = st.session_state['nmf']
+        tfidf_feature_names = st.session_state['tfidf_feature_names']
+        NMF_expander = st.expander("NMF")
+        NMF_expander.write(
+            plot_top_words(
+                nmf,
+                tfidf_feature_names,
+                10, 
+                "Topics in NMF model (KL Divergence Loss)"
+            )
+        )
 
-
-        col1, col2, col3, col4 = st.columns([0.25,0.25,0.25,0.25])
+        col1, col2, col3, col4 = st.columns([0.25, 0.25, 0.25, 0.25])
         generate_with_a = col1.button("Generate dataset with Bert",
                             on_click=set_topic_model, args=("bert", ))
         generate_with_b = col2.button("Generate dataset with Top2Vec",
@@ -151,8 +155,8 @@ if st.session_state["currentPage"] == "insightPage":
         generate_with_c = col4.button("Generate dataset with NMF",
                             on_click=set_topic_model, args=("nmf", ))
 
-# Download Page
 
+# Download Page
 if st.session_state["currentPage"] == "downloadPage":
     downloadPage = st.container()
     with downloadPage:
