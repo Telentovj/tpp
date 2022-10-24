@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+from distutils.command.upload import upload
 import streamlit as st
 import math
 from topic_models.data import *
@@ -31,6 +33,7 @@ def set_topic_model(model):
 
 # Main page
 if st.session_state.currentPage == "main_page":
+    # Create word cloud for fun
     main_page = st.container()
     with main_page:
         col1, col2, col3 = st.columns([0.5, 0.1, 0.5])
@@ -64,22 +67,25 @@ if st.session_state.currentPage == "main_page":
                 df, docs, docs_tokenized = preprocess_data(df)
                 st.session_state["dataframe"] = df
                 st.session_state["docs"] = docs
+
+                # Create word cloud for fun
+                st.markdown("<h1 style='text-align: center;font-size: 24px;'>Word Cloud of input dataset</h1>", unsafe_allow_html=True)                
+                st.pyplot(wordcloud(docs_tokenized))
                 
                 # Bert logic
-                # bert = run_bertopic(docs, number_of_topics)
-                # st.session_state["bert"] = bert
+                bert = run_bertopic(docs, number_of_topics)
+                st.session_state["bert"] = bert
 
                 # Lda logic
-                # wang fei this is broken :/
                 lda_model, bow_corpus, dictionary = run_lda(docs_tokenized, number_of_topics)
                 st.session_state["lda"] = lda_model
                 st.session_state["bow_corpus"] = bow_corpus
                 st.session_state["lda_dictionary"] = dictionary
 
                 # nmf logic
-                # nmf,tfidf_feature_names = run_nmf(docs, number_of_topics)
-                # st.session_state["nmf"] = nmf
-                # st.session_state["tfidf_feature_names"] = tfidf_feature_names
+                nmf,tfidf_feature_names = run_nmf(docs, number_of_topics)
+                st.session_state["nmf"] = nmf
+                st.session_state["tfidf_feature_names"] = tfidf_feature_names
 
                 # top2vec logic
                 # top2vec = runTop2Vec(docs)
@@ -119,20 +125,27 @@ if st.session_state["currentPage"] == "insight_page":
         bert_expander = st.expander("Bert")
         bert_expander.write(bert.visualize_barchart().update_layout(autosize=False,width = 670,height=400))
 
-        # #Top2Vec
+        #Top2Vec
         # top2vec = st.session_state['top2vec']
-        # Top2Vec_expander = st.expander("Top2Vec")
+        # top2vec_expander = st.expander("Top2Vec")
+        # top2vec_expander.write()
 
-        # #LDA
-        # john this is broken sync with wang fei 
-        # lda = st.session_state['lda']
-        # LDA_expander = st.expander("LDA")
+        #LDA
+        lda = st.session_state['lda']
+        LDA_expander = st.expander("LDA")
+        # LDA_expander.write(
+        #     visualize_chart_lda(
+        #         lda, 
+        #         st.session_state['bow_corpus'], 
+        #         st.session_state['lda_dictionary']
+        #     ).show()
+        # )
 
         # NMF
         nmf = st.session_state['nmf']
         tfidf_feature_names = st.session_state['tfidf_feature_names']
         NMF_expander = st.expander("NMF")
-        NMF_expander.write(
+        NMF_expander.pyplot(
             plot_top_words(
                 nmf,
                 tfidf_feature_names,
@@ -167,7 +180,7 @@ if st.session_state["currentPage"] == "download_page":
     download_page = st.container()
     topic_model = st.session_state["topicModel"]
     number_of_topics = st.session_state["number_of_topics"]
-    # bow_corpus = st.session_state["bow_corpus"]
+    bow_corpus = st.session_state["bow_corpus"]
     docs = st.session_state['docs']
     df = st.session_state["dataframe"]
     k  = st.session_state['k'] 
@@ -189,8 +202,8 @@ if st.session_state["currentPage"] == "download_page":
 
     if topic_model == "nmf":
         nmf = st.session_state['nmf']
-        samples = get_top_docs_nmf(df, nmf, number_of_topics, k)
-        labeled_csv = samples_to_csv
+        samples = get_top_docs_nmf(df, docs, nmf, number_of_topics, k)
+        labeled_csv = samples_to_csv(samples)
 
     with download_page:
         st.write("Download dataset labeled with: " + topic_model)

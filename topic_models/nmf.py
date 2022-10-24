@@ -42,7 +42,7 @@ def plot_top_words(model, feature_names, n_top_words, title):
         fig.suptitle(title, fontsize=40)
 
     plt.subplots_adjust(top=0.90, bottom=0.05, wspace=0.90, hspace=0.3)
-    plt.show()
+    return fig
 
 def get_tfidf_vectorizer():
     tfidf_params = {'min_df': 0.0008, 
