@@ -88,8 +88,8 @@ if st.session_state.currentPage == "main_page":
                 # top2vec = runTop2Vec(docs)
                 # st.session_state["top2vec"] = top2vec
 
-
-                insight = col2.button(
+                insight1, insight2, insight3 = st.columns([1, 1.5, 1])
+                insight = insight2.button(
                         "Click here to focus on the insights that has be found!",
                         on_click=change_page, 
                         args=("insight_page",)
