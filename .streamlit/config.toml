@@ -16,3 +16,4 @@ textColor = '#000000'
 # Accepted values (serif | sans serif | monospace) 
 # Default: "sans serif"
 font = "Lato"
+
