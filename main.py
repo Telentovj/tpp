@@ -66,23 +66,22 @@ if st.session_state.currentPage == "main_page":
                 st.session_state["docs"] = docs
                 
                 # Bert logic
-                bert = run_bertopic(docs, 4)
-                st.session_state["bert"] = bert
+                # bert = run_bertopic(docs, number_of_topics)
+                # st.session_state["bert"] = bert
 
                 # Lda logic
                 # wang fei this is broken :/
-                # lda_model, bow_corpus, dictionary = run_lda(docs_tokenized,4)
-                # st.session_state["lda"] = lda
-                # st.session_state["bow_corpus"] = bow_corpus
-                # st.session_state["lda_dictionary"] = dictionary
+                lda_model, bow_corpus, dictionary = run_lda(docs_tokenized, number_of_topics)
+                st.session_state["lda"] = lda_model
+                st.session_state["bow_corpus"] = bow_corpus
+                st.session_state["lda_dictionary"] = dictionary
 
                 # nmf logic
-                nmf,tfidf_feature_names = run_nmf(docs,4)
-                st.session_state["nmf"] = nmf
-                st.session_state["tfidf_feature_names"] = tfidf_feature_names
+                # nmf,tfidf_feature_names = run_nmf(docs, number_of_topics)
+                # st.session_state["nmf"] = nmf
+                # st.session_state["tfidf_feature_names"] = tfidf_feature_names
 
                 # top2vec logic
-                # jegan this is broken :/
                 # top2vec = runTop2Vec(docs)
                 # st.session_state["top2vec"] = top2vec
 
@@ -121,7 +120,6 @@ if st.session_state["currentPage"] == "insight_page":
         bert_expander.write(bert.visualize_barchart().update_layout(autosize=False,width = 670,height=400))
 
         # #Top2Vec
-        # john this is broken sync with jegan
         # top2vec = st.session_state['top2vec']
         # Top2Vec_expander = st.expander("Top2Vec")
 
