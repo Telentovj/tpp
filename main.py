@@ -70,8 +70,10 @@ if st.session_state.currentPage == "mainPage":
 
                 # Lda logic
                 # wang fei this is broken :/
-                # lda = run_lda(docs_tokenized,4)
+                # lda_model, bow_corpus, dictionary = run_lda(docs_tokenized,4)
                 # st.session_state["lda"] = lda
+                # st.session_state["bow_corpus"] = bow_corpus
+                # st.session_state["lda_dictionary"] = dictionary
 
                 # nmf logic
                 nmf,tfidf_feature_names = run_nmf(docs,4)
@@ -139,7 +141,6 @@ if st.session_state["currentPage"] == "insightPage":
         # LDA_expander = st.expander("LDA")
 
         # NMF
-        # hari this works but idk if its correct 
         nmf = st.session_state['nmf']
         tfidf_feature_names = st.session_state['tfidf_feature_names']
         NMF_expander = st.expander("NMF")
@@ -176,10 +177,11 @@ if st.session_state["currentPage"] == "insightPage":
 # Download Page
 if st.session_state["currentPage"] == "downloadPage":
 
-    # Initalize what you need to generate the sample dataset here, wang fei & jegan.
     downloadPage = st.container()
     topic_model = st.session_state["topicModel"]
     number_of_topics = st.session_state["number_of_topics"]
+    bow_corpus = st.session_state["bow_corpus"]
+    docs = , st.sessions_state['docs']
     df = st.session_state["dataframe"]
     k  = st.session_state['k'] 
 
@@ -189,21 +191,19 @@ if st.session_state["currentPage"] == "downloadPage":
         samples = get_top_documents_bert(df, bert, 3, 3)
         labeled_csv = samples_to_csv(samples)
 
-    # if topic_model == "top2vec":
-    #     top2vec = st.session_state['top2vec']
-    #     jegan tell me what k is 
-    #     samples = get_top_documents_Top2Vec(df, top2vec, number_of_topics, k??)
-    #     labeled_csv = samples_to_csv(samples)
+    if topic_model == "top2vec":
+        top2vec = st.session_state['top2vec']
+        samples = get_top_documents_Top2Vec(df, top2vec, number_of_topics, k)
+        labeled_csv = samples_to_csv(samples)
 
-    # if topic_model == "lda":
-    #     lda = st.session_state['lda']
-    #     wang fei fill this up
-    #     samples = get_top_documents_lda(df, ????)
-    #     labeled_csv = samples_to_csv(samples)
+    if topic_model == "lda":
+        lda = st.session_state['lda']
+        samples = get_top_documents_lda(df, bow_corpus, lda, number_of_topics, k)
+        labeled_csv = samples_to_csv(samples)
 
     if topic_model == "nmf":
         nmf = st.session_state['nmf']
-        samples = get_top_docs_nmf(df, st.sessions_state['docs'], nmf, number_of_topics, k)
+        samples = get_top_docs_nmf(df, nmf, number_of_topics, k)
         labeled_csv = samples_to_csv
 
     with downloadPage:
