@@ -48,7 +48,7 @@ if st.session_state.currentPage == "main_page":
         # Input for number of topics 
         number_of_topics = st.number_input(
             'Insert number of Topics, decimals will be rounded down.',
-            min_value = 0, 
+            min_value = 1, 
             max_value= 10,
             value = 3,
         )
@@ -155,7 +155,7 @@ if st.session_state["currentPage"] == "insight_page":
         # Ask for how many datapoints you want her topic, k.
         k = st.number_input(
             'Insert number of datapoints, you want for each topic, decimals will be rounded down.',
-            min_value = 0, 
+            min_value = 1, 
             max_value= 100,
             value = 5,
         )
