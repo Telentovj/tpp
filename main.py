@@ -62,6 +62,7 @@ if st.session_state.currentPage == "mainPage":
                 df = load_data(uploaded_file)
                 df, docs, docs_tokenized = preprocess_data(df)
                 st.session_state["dataframe"] = df
+                st.session_state["doc"] = docs
                 
                 # Bert logic
                 bert = run_bertopic(docs, 4)
@@ -200,11 +201,10 @@ if st.session_state["currentPage"] == "downloadPage":
     #     samples = get_top_documents_lda(df, ????)
     #     labeled_csv = samples_to_csv(samples)
 
-    # if topic_model == "nmf":
-    #     nmf = st.session_state['nmf']
-    #     hari fill this up
-    #     samples = get_top_docs_nmf(df, ???????)
-    #     labeled_csv = samples_to_csv
+    if topic_model == "nmf":
+        nmf = st.session_state['nmf']
+        samples = get_top_docs_nmf(df, st.sessions_state['docs'], nmf, number_of_topics, k)
+        labeled_csv = samples_to_csv
 
     with downloadPage:
         st.write("Download dataset labeled with: " + topic_model)
