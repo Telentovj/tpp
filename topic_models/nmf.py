@@ -25,7 +25,7 @@ def plot_top_words(model, feature_names, n_top_words, title):
     title : str
         The main title of the plot.
     '''
-    fig, axes = plt.subplots(1, 5, figsize=(30, 15), sharex=True)
+    fig, axes = plt.subplots(2, 5, figsize=(30, 15), sharex=True)
     axes = axes.flatten()
     for topic_idx, topic in enumerate(model.components_):
         top_features_ind = topic.argsort()[: -n_top_words - 1 : -1]
