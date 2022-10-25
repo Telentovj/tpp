@@ -77,10 +77,10 @@ if st.session_state.currentPage == "main_page":
                 st.session_state["bert"] = bert
 
                 # Lda logic
-                lda_model, bow_corpus, dictionary = run_lda(docs_tokenized, number_of_topics)
-                st.session_state["lda"] = lda_model
-                st.session_state["bow_corpus"] = bow_corpus
-                st.session_state["lda_dictionary"] = dictionary
+                #lda_model, bow_corpus, dictionary = run_lda(docs_tokenized, number_of_topics)
+                #st.session_state["lda"] = lda_model
+                #st.session_state["bow_corpus"] = bow_corpus
+                #st.session_state["lda_dictionary"] = dictionary
 
                 # nmf logic
                 nmf,tfidf_feature_names = run_nmf(docs, number_of_topics)
@@ -88,15 +88,17 @@ if st.session_state.currentPage == "main_page":
                 st.session_state["tfidf_feature_names"] = tfidf_feature_names
 
                 # top2vec logic
-                # top2vec = runTop2Vec(docs)
-                # st.session_state["top2vec"] = top2vec
+                top2vec = runTop2Vec(docs)
+                st.session_state["top2vec"] = top2vec
+                runTop2VecReduced(top2vec, number_of_topics)
+                
 
                 insight1, insight2, insight3 = st.columns([1, 1.5, 1])
                 insight = insight2.button(
                         "Click here to focus on the insights that has be found!",
                         on_click=change_page, 
-                        args=("insight_page",)
-                    )
+                       args=("insight_page",)
+                )
             else:
                 st.warning('Please insert the number of topics.')
             
@@ -113,7 +115,6 @@ if st.session_state["currentPage"] == "faq_page":
                               on_click=change_page, args=("main_page", ))
 
 
-
 # Insights page
 if st.session_state["currentPage"] == "insight_page":
     insight_page = st.container()
@@ -127,13 +128,15 @@ if st.session_state["currentPage"] == "insight_page":
         bert_expander.write(bert.visualize_barchart().update_layout(autosize=False,width = 670,height=400))
 
         #Top2Vec
-        # top2vec = st.session_state['top2vec']
-        # top2vec_expander = st.expander("Top2Vec")
-        # top2vec_expander.write()
+        top2vec = st.session_state['top2vec']
+        top2vec_expander = st.expander("Top2Vec")
+        for i in range(number_of_topics):
+            fig = printWordBar(top2vec, i)
+            top2vec_expander.plotly_chart(fig, use_container_width=True)
 
         #LDA
-        lda = st.session_state['lda']
-        LDA_expander = st.expander("LDA")
+        #lda = st.session_state['lda']
+        #LDA_expander = st.expander("LDA")
         # LDA_expander.write(
         #     visualize_chart_lda(
         #         lda, 
@@ -181,7 +184,7 @@ if st.session_state["currentPage"] == "download_page":
     download_page = st.container()
     topic_model = st.session_state["topicModel"]
     number_of_topics = st.session_state["number_of_topics"]
-    bow_corpus = st.session_state["bow_corpus"]
+    #bow_corpus = st.session_state["bow_corpus"]
     docs = st.session_state['docs']
     df = st.session_state["dataframe"]
     k  = st.session_state['k'] 
@@ -198,7 +201,7 @@ if st.session_state["currentPage"] == "download_page":
 
     if topic_model == "lda":
         lda = st.session_state['lda']
-        samples = get_top_documents_lda(df, bow_corpus, lda, number_of_topics, k)
+        #samples = get_top_documents_lda(df, bow_corpus, lda, number_of_topics, k)
         labeled_csv = samples_to_csv(samples)
 
     if topic_model == "nmf":

@@ -2,6 +2,7 @@ import pandas as pd
 from top2vec import Top2Vec
 import matplotlib.pyplot as plt
 import seaborn as sns
+import plotly.express as px
 
 #docs is a string array of documents, numTopic is an integer
 def runTop2Vec(docs):
@@ -22,15 +23,15 @@ def printWordCloud(model, numTopic):
         
 #print topic word score barchart
 def printWordBar(model, numTopic):
-  for i in range(numTopic):
-    topic_names = model.topic_words_reduced[i]#[:5]
-    topic_probs = model.topic_word_scores_reduced[i]#[:5]
+    #for i in range(numTopic):
+    topic_names = model.topic_words_reduced[numTopic][:10]
+    topic_probs = model.topic_word_scores_reduced[numTopic][:10]
     df_topics = pd.DataFrame(topic_names).rename(columns={0 : "Topic Words"})
     df_probs = pd.DataFrame(topic_probs).rename(columns={0 : "Probability"})
     df = pd.concat([df_topics, df_probs], axis=1)
-    plt.figure()
-    sns.set(rc={'figure.figsize':(11.7,12)}) 
-    ax = sns.barplot(x="Probability", y="Topic Words", data=df, palette="mako").set(title='Topic ' + str(i))
+    fig = px.bar(df, y='Probability', x='Topic Words', text_auto='.2s', title= numTopic)
+    fig.update_traces(textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
+    return fig
 
 def get_top_documents_Top2Vec(df, model, num_topics, k):
     samples = []
