@@ -25,7 +25,7 @@ def plot_top_words(model, feature_names, n_top_words, title):
     title : str
         The main title of the plot.
     '''
-    fig, axes = plt.subplots(1, 5, figsize=(30, 15), sharex=True)
+    fig, axes = plt.subplots(2, 5, figsize=(30, 15), sharex=True)
     axes = axes.flatten()
     for topic_idx, topic in enumerate(model.components_):
         top_features_ind = topic.argsort()[: -n_top_words - 1 : -1]
@@ -100,6 +100,40 @@ def run_nmf(docs, num_topics):
 
     return nmf, tfidf_feature_names
 
+def get_doc_topic_df(docs, model, num_topics):
+    '''
+    Parameters
+    ----------
+    docs : np.array
+        An array of documents. Note that each document is a string of the processed text.
+        This is same as input into run_nmf.
+    
+    model : sklearn.estimator
+        The fitted nmf estimator returned from run_nmf. 
+
+    num_topics : int
+        Number of topics learned.
+    
+    Returns
+    ----------
+    doc_topic_df : pd.DataFrame
+        df with 3 columns, topic, topic_score and doc which are 
+        the topic labels, scores and document index respectively.
+    '''
+    tfidf_vectorizer = get_tfidf_vectorizer()
+    tfidf = tfidf_vectorizer.fit_transform(docs)
+
+    W = model.fit_transform(tfidf)
+    W = pd.DataFrame(W)
+
+    W['topic'] = W.apply(lambda r: r.argmax(), axis=1)
+    W['topic_score'] = W.apply(lambda r: r[:num_topics].max(), axis=1)
+    W['doc'] = W.index
+
+    doc_topic_df = W[['topic', 'topic_score', 'doc']]
+
+    return doc_topic_df
+
 def get_top_docs_nmf(df, docs, model, num_topics, k):
     '''
     Parameters
@@ -125,21 +159,12 @@ def get_top_docs_nmf(df, docs, model, num_topics, k):
     top_k_docs : list
         Array of top scoring sample docs for the topics.
     '''
-
-    tfidf_vectorizer = get_tfidf_vectorizer()
-    tfidf = tfidf_vectorizer.fit_transform(docs)
-
-    W = model.fit_transform(tfidf)
-    W = pd.DataFrame(W)
-
-    W['topic'] = W.apply(lambda r: r.argmax(), axis=1)
-    W['topic_score'] = W.apply(lambda r: r[:num_topics].max(), axis=1)
-    W['doc'] = W.index
+    doc_topic_df = get_doc_topic_df(docs, model, num_topics)
 
     docs_idx = []
 
-    for topic in W.topic.unique():
-        top_k_docs_df = W[W.topic == topic].sort_values('topic_score', ascending=False)[:k]
+    for topic in doc_topic_df.topic.unique():
+        top_k_docs_df = doc_topic_df[doc_topic_df.topic == topic].sort_values('topic_score', ascending=False)[:k]
         docs_idx.extend(list(top_k_docs_df.doc))
 
     top_k_docs = list(df.loc[docs_idx, 'text'].values[0])
