@@ -138,9 +138,15 @@ def wordcloud(df):
 ################################################################
 #                       HELPER FUNCTIONS                       #
 ################################################################
-def samples_to_csv(samples):
+def samples_to_csv(samples, topic_numbers, topic_words, topic_scores):
     """
     Converts list of samples to output an encoded csv for streamlit
     """
-    df = pd.DataFrame(samples, columns=["text"])
-    return df.to_csv().encode("utf-8")
+    df = pd.DataFrame({
+        "text": samples, 
+        "topic_number": topic_numbers,
+        "topic_words": topic_words,
+        "topic_score": topic_scores
+    })
+    
+    return df.to_csv(index=False).encode("utf-8")
