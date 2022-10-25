@@ -24,7 +24,7 @@ def run_bertopic(docs, num_topics):
 
     return model
 
-def get_top_documents(df, model, num_topics, k):
+def get_top_documents_bert(df, model, num_topics, k):
     """
     Args:
     - df: pandas dataframe
@@ -60,7 +60,6 @@ def get_topic_freq(model):
 
 def visualize_barchart_bert(model):
     """
-        Returns a Figure object that I assume plots out the barchart, 
-        Doesnt plot on CLI 
+        Returns a Figure object plots the barchat
     """
     return model.visualize_barchart()

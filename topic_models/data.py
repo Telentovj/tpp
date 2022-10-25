@@ -23,16 +23,22 @@ nltk.download('omw-1.4')
 ################################################################
 #                         LOADING DATA                         #
 ################################################################
-def load_data(file, ):
+def load_data(file, file_name):
     """
     Args:
     - file: Streamlit File Object or String for file path
+    - file_name: Streamlit file name
 
     Returns:
     - Pandas dataframe
     """
-    df = pd.read_csv(file)
-    return df
+    file_type = file_name.split(".")[1]
+
+    if file_type == "csv":
+        return pd.read_csv(file)
+    elif file_type == "xlsx":
+        return pd.read_excel(file)
+
 
 ################################################################
 #                      DATA PREPROCESSING                      #
@@ -112,13 +118,13 @@ def wordcloud(df):
                   min_font_size = 10).generate(comment_words)
   
   # plot the WordCloud image                      
-  plt.figure(figsize = (8, 8), facecolor = None)
+  cloud = plt.figure(figsize = (8, 8), facecolor = None)
   plt.imshow(wordcloud)
   plt.axis("off")
   plt.tight_layout(pad = 0)
   
   plt.show()
-  return wordcloud
+  return cloud
 
 ################################################################
 #                       HELPER FUNCTIONS                       #
