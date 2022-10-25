@@ -67,7 +67,8 @@ def visualize_chart_lda(model, bow_corpus, dictionary):
         Returns a Figure object that I assume plots out the barchart, 
         Doesnt plot on CLI 
     """
-    return pyLDAvis.gensim_models.prepare(model, bow_corpus, dictionary)
+    vis = pyLDAvis.gensim_models.prepare(model, bow_corpus, dictionary)
+    return pyLDAvis.prepared_data_to_html(vis)
 
 
 

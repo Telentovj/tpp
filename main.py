@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-from distutils.command.upload import upload
 import streamlit as st
 import math
 from topic_models.data import *
@@ -7,6 +5,7 @@ from topic_models.bertopic import *
 from topic_models.lda import *
 from topic_models.top2vec import *
 from topic_models.nmf import *
+import streamlit.components.v1 as components
 
 with open("styles.css") as css:
     st.markdown(f'<style>{css.read()}</style>', unsafe_allow_html=True)
@@ -67,30 +66,27 @@ if st.session_state.currentPage == "main_page":
                 df, docs, docs_tokenized = preprocess_data(df)
                 st.session_state["dataframe"] = df
                 st.session_state["docs"] = docs
-
-                # Create word cloud for fun
-                st.markdown("<h1 style='text-align: center;font-size: 24px;'>Word Cloud of input dataset</h1>", unsafe_allow_html=True)                
-                st.pyplot(wordcloud(docs_tokenized))
+                st.session_state["docs_tokenized"] = docs_tokenized
                 
                 # Bert logic
-                bert = run_bertopic(docs, number_of_topics)
-                st.session_state["bert"] = bert
+                # bert = run_bertopic(docs, number_of_topics)
+                # st.session_state["bert"] = bert
 
                 # Lda logic
-                #lda_model, bow_corpus, dictionary = run_lda(docs_tokenized, number_of_topics)
-                #st.session_state["lda"] = lda_model
-                #st.session_state["bow_corpus"] = bow_corpus
-                #st.session_state["lda_dictionary"] = dictionary
+                lda_model, bow_corpus, dictionary = run_lda(docs_tokenized, number_of_topics)
+                st.session_state["lda"] = lda_model
+                st.session_state["bow_corpus"] = bow_corpus
+                st.session_state["lda_dictionary"] = dictionary
 
                 # nmf logic
-                nmf,tfidf_feature_names = run_nmf(docs, number_of_topics)
-                st.session_state["nmf"] = nmf
-                st.session_state["tfidf_feature_names"] = tfidf_feature_names
+                # nmf,tfidf_feature_names = run_nmf(docs, number_of_topics)
+                # st.session_state["nmf"] = nmf
+                # st.session_state["tfidf_feature_names"] = tfidf_feature_names
 
                 # top2vec logic
-                top2vec = runTop2Vec(docs)
-                st.session_state["top2vec"] = top2vec
-                runTop2VecReduced(top2vec, number_of_topics)
+                # top2vec = runTop2Vec(docs)
+                # st.session_state["top2vec"] = top2vec
+                # runTop2VecReduced(top2vec, number_of_topics)
                 
 
                 insight1, insight2, insight3 = st.columns([1, 1.5, 1])
@@ -121,42 +117,53 @@ if st.session_state["currentPage"] == "insight_page":
     number_of_topics = st.session_state['number_of_topics']
 
     with insight_page:
+
+        #WordCloud
+        word_cloud_expander = st.expander("Word Cloud")
+        word_cloud_expander.pyplot(wordcloud(st.session_state['docs_tokenized']))
         
         #BERT
-        bert = st.session_state['bert']
-        bert_expander = st.expander("Bert")
-        bert_expander.write(bert.visualize_barchart().update_layout(autosize=False,width = 670,height=400))
+        # bert = st.session_state['bert']
+        # bert_expander = st.expander("Bert")
+        # bert_expander.write(bert.visualize_barchart().update_layout(autosize=False,width = 670,height=400))
 
         #Top2Vec
-        top2vec = st.session_state['top2vec']
-        top2vec_expander = st.expander("Top2Vec")
-        for i in range(number_of_topics):
-            fig = printWordBar(top2vec, i)
-            top2vec_expander.plotly_chart(fig, use_container_width=True)
+        # top2vec = st.session_state['top2vec']
+        # top2vec_expander = st.expander("Top2Vec")
+        # for i in range(number_of_topics):
+        #     fig = printWordBar(top2vec, i)
+        #     top2vec_expander.plotly_chart(fig, use_container_width=True)
 
         #LDA
-        #lda = st.session_state['lda']
-        #LDA_expander = st.expander("LDA")
-        # LDA_expander.write(
-        #     visualize_chart_lda(
-        #         lda, 
-        #         st.session_state['bow_corpus'], 
-        #         st.session_state['lda_dictionary']
-        #     ).show()
-        # )
+        lda = st.session_state['lda']
+        with st.expander("LDA"):
+            # LDA_expander = st.expander("LDA")
+            # LDA_expander.write(
+            #     visualize_chart_lda(
+            #         lda, 
+            #         st.session_state['bow_corpus'], 
+            #         st.session_state['lda_dictionary']
+            #     ).show()
+            # )
+
+            components.html(visualize_chart_lda(
+                lda, 
+                st.session_state['bow_corpus'], 
+                st.session_state['lda_dictionary']
+            ), width=1300, height=800)
 
         # NMF
-        nmf = st.session_state['nmf']
-        tfidf_feature_names = st.session_state['tfidf_feature_names']
-        NMF_expander = st.expander("NMF")
-        NMF_expander.pyplot(
-            plot_top_words(
-                nmf,
-                tfidf_feature_names,
-                10, 
-                "Topics in NMF model (KL Divergence Loss)"
-            )
-        )
+        # nmf = st.session_state['nmf']
+        # tfidf_feature_names = st.session_state['tfidf_feature_names']
+        # NMF_expander = st.expander("NMF")
+        # NMF_expander.pyplot(
+        #     plot_top_words(
+        #         nmf,
+        #         tfidf_feature_names,
+        #         10, 
+        #         "Topics in NMF model (KL Divergence Loss)"
+        #     )
+        # )
 
         # Ask for how many datapoints you want her topic, k.
         k = st.number_input(
@@ -178,6 +185,7 @@ if st.session_state["currentPage"] == "insight_page":
         generate_with_nmf = col4.button("Generate dataset with NMF",
                             on_click=set_topic_model, args=("nmf", ))
 
+        go_back = st.button("Go Back to Insights", on_click=change_page, args=("main_page", ))
 
 # Download Page
 if st.session_state["currentPage"] == "download_page":
@@ -194,15 +202,15 @@ if st.session_state["currentPage"] == "download_page":
         samples = get_top_documents_bert(df, bert, number_of_topics, k)
         labeled_csv = samples_to_csv(samples)
 
-    if topic_model == "top2vec":
-        top2vec = st.session_state['top2vec']
-        samples = get_top_documents_Top2Vec(df, top2vec, number_of_topics, k)
-        labeled_csv = samples_to_csv(samples)
+    # if topic_model == "top2vec":
+    #     top2vec = st.session_state['top2vec']
+    #     samples = get_top_documents_Top2Vec(df, top2vec, number_of_topics, k)
+    #     labeled_csv = samples_to_csv(samples)
 
-    if topic_model == "lda":
-        lda = st.session_state['lda']
-        #samples = get_top_documents_lda(df, bow_corpus, lda, number_of_topics, k)
-        labeled_csv = samples_to_csv(samples)
+    # if topic_model == "lda":
+    #     lda = st.session_state['lda']
+    #     samples = get_top_documents_lda(df, bow_corpus, lda, number_of_topics, k)
+    #     labeled_csv = samples_to_csv(samples)
 
     if topic_model == "nmf":
         nmf = st.session_state['nmf']
@@ -217,5 +225,8 @@ if st.session_state["currentPage"] == "download_page":
             file_name = 'test.csv',
             mime = 'text/csv',
         )
-        go_back = st.button("Input another file",
+
+        go_back = st.button("Go Back to Insights", on_click=change_page, args=("insight_page", ))
+
+        go_back_to_start = st.button("Input another file",
                             on_click=change_page, args=("main_page", ))
