@@ -41,8 +41,8 @@ def get_top_documents_lda(df, bow_corpus, model, num_topics, k):
 
     for topic_num in range(num_topics):
       df_selected_topic = df[df['dominant_topic'] == topic_num].copy()
-      samples.append(df_selected_topic['text'][:k])
-    
+      samples = samples + list(df_selected_topic['text'][:k].values)
+  
     return samples
 
 def get_topic_lda(model, topic_num):
