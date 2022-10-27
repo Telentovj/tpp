@@ -309,10 +309,10 @@ if st.session_state["currentPage"] == "download_page":
     df = st.session_state["dataframe"]
     k = st.session_state["k"]
 
-    if topic_model == "bert" and st.session_state["use_bert"]:
-        bert = st.session_state["bert"]
-        samples = get_top_documents_bert(df, bert, number_of_topics, k)
-        labeled_csv = samples_to_csv(samples)
+    if topic_model == "bert" and st.session_state['use_bert']:
+        bert = st.session_state['bert']
+        samples, topic_numbers, topic_words = get_top_documents_bert(df, bert, k)
+        labeled_csv = samples_to_csv_bert(samples, topic_numbers, topic_words)
 
     # if topic_model == "top2vec" and st.session_state['use_top2vec']:
     #     top2vec = st.session_state['top2vec']
