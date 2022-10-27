@@ -2,7 +2,7 @@ import pandas as pd
 import gensim
 from gensim.utils import simple_preprocess
 from gensim.parsing.preprocessing import STOPWORDS
-from nltk.stem import WordNetLemmatizer, SnowballStemmer 
+from nltk.stem import WordNetLemmatizer, SnowballStemmer
 from nltk.stem.porter import *
 import numpy as np
 from wordcloud import WordCloud
@@ -17,8 +17,8 @@ except AttributeError:
 else:
     ssl._create_default_https_context = _create_unverified_https_context
 
-nltk.download('wordnet')
-nltk.download('omw-1.4')
+nltk.download("wordnet")
+nltk.download("omw-1.4")
 
 ################################################################
 #                         LOADING DATA                         #
@@ -45,7 +45,7 @@ def load_data(file, file_name):
 ################################################################
 def _clean_data(df):
     """
-    Preprocesses data by removing na values, words associated with @ and # 
+    Preprocesses data by removing na values, words associated with @ and #
     as well as http[s] links
 
     Args:
@@ -56,17 +56,19 @@ def _clean_data(df):
     """
     df["text"] = df["text"].str.lower()
     df["text"] = df["text"].replace("na", None)
-    text = df[~df["text"].isna()][['text']]
+    text = df[~df["text"].isna()][["text"]]
 
     # Remove @, # and links
-    text["text"] = text["text"].str.replace(r"@[A-Za-z0-9_]+",'', regex=True)
-    text["text"] = text["text"].str.replace(r"#[A-Za-z0-9_]+",'', regex=True)
-    text["text"] = text["text"].str.replace(r"http[s]?://\S+",'', regex=True)
+    text["text"] = text["text"].str.replace(r"@[A-Za-z0-9_]+", "", regex=True)
+    text["text"] = text["text"].str.replace(r"#[A-Za-z0-9_]+", "", regex=True)
+    text["text"] = text["text"].str.replace(r"http[s]?://\S+", "", regex=True)
 
     return text
 
+
 def _lemmatize(text):
-    return WordNetLemmatizer().lemmatize(text, pos='v')
+    return WordNetLemmatizer().lemmatize(text, pos="v")
+
 
 def _preprocess(text):
     """
@@ -76,13 +78,14 @@ def _preprocess(text):
     Returns:
     - Cleaned text: String
     """
-    result = ''
-    text=str(text)
+    result = ""
+    text = str(text)
     token_words = gensim.utils.simple_preprocess(text)
     for token in token_words:
         if token not in gensim.parsing.preprocessing.STOPWORDS and len(token) > 3:
-            result = result + ' ' + _lemmatize(token)
+            result = result + " " + _lemmatize(token)
     return result
+
 
 def preprocess_data(df):
     """
@@ -101,30 +104,36 @@ def preprocess_data(df):
 
     return (text, docs, docs_tokenized)
 
+
 ################################################################
 #                         WordCloud                            #
 ################################################################
 
-def wordcloud(df):
-  comment_words = ''
 
-  for val in df:
-      
-    comment_words += " ".join(val)+" "
-  
-  wordcloud = WordCloud(width = 800, height = 800,
-                  background_color ='white',
-                  stopwords = gensim.parsing.preprocessing.STOPWORDS,
-                  min_font_size = 10).generate(comment_words)
-  
-  # plot the WordCloud image                      
-  cloud = plt.figure(figsize = (8, 8), facecolor = None)
-  plt.imshow(wordcloud)
-  plt.axis("off")
-  plt.tight_layout(pad = 0)
-  
-  plt.show()
-  return cloud
+def wordcloud(df):
+    comment_words = ""
+
+    for val in df:
+
+        comment_words += " ".join(val) + " "
+
+    wordcloud = WordCloud(
+        width=800,
+        height=800,
+        background_color="white",
+        stopwords=gensim.parsing.preprocessing.STOPWORDS,
+        min_font_size=10,
+    ).generate(comment_words)
+
+    # plot the WordCloud image
+    cloud = plt.figure(figsize=(8, 8), facecolor=None)
+    plt.imshow(wordcloud)
+    plt.axis("off")
+    plt.tight_layout(pad=0)
+
+    plt.show()
+    return cloud
+
 
 ################################################################
 #                       HELPER FUNCTIONS                       #
@@ -134,4 +143,4 @@ def samples_to_csv(samples):
     Converts list of samples to output an encoded csv for streamlit
     """
     df = pd.DataFrame(samples, columns=["text"])
-    return df.to_csv().encode('utf-8')
+    return df.to_csv().encode("utf-8")
