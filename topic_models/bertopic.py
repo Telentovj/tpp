@@ -29,6 +29,7 @@ def run_bertopic(docs, num_topics):
 
     return model
 
+
 def get_top_documents_bert(df, model, k):
     """
     Args:
@@ -56,6 +57,7 @@ def get_top_documents_bert(df, model, k):
             topic_words.append(topic_word)
     return samples, topic_numbers, topic_words
 
+
 def samples_to_csv_bert(samples, topic_numbers, topic_words):
     """
     Converts list of samples, topic_numbers and topic_words
@@ -64,15 +66,11 @@ def samples_to_csv_bert(samples, topic_numbers, topic_words):
     Args:
     - samples: Array of sample documents
     - topic_numbers: Array of corresponding topic numbers
-    - topic_words: String of representative topic_words for topic 
+    - topic_words: String of representative topic_words for topic
 
     Returns:
     - CSV object
     """
-    data = {
-        'text': samples,
-        'topic_number': topic_numbers,
-        'topic_word': topic_words
-    }
+    data = {"text": samples, "topic_number": topic_numbers, "topic_word": topic_words}
     df = pd.DataFrame(data)
-    return df.to_csv().encode('utf-8')
+    return df.to_csv().encode("utf-8")
