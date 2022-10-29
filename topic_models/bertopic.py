@@ -30,7 +30,7 @@ def run_bertopic(docs, num_topics):
     return model
 
 
-def get_top_documents_bert(df, model, k):
+def get_top_docs_bert(df, model, k):
     """
     Args:
     - df: pandas dataframe
@@ -39,11 +39,11 @@ def get_top_documents_bert(df, model, k):
 
     Returns:
     - samples: Array of sample documents
-    - topic_numbers: Array of corresponding topic numbers
+    - topic_labels: Array of corresponding topic labels
     - topic_words: String of representative topic_words for topic
     """
     samples = []
-    topic_numbers = []
+    topic_labels = []
     topic_words = []
     representative_docs = model.representative_docs_
     for topic_num, documents in representative_docs.items():
@@ -53,24 +53,34 @@ def get_top_documents_bert(df, model, k):
                 break
             sample = df.loc[df["processed"] == doc]["text"].values[0]
             samples.append(sample)
-            topic_numbers.append(topic_num)
+            topic_labels.append(topic_num)
             topic_words.append(topic_word)
-    return samples, topic_numbers, topic_words
 
+    data = {"doc": samples, "topic_label": topic_labels, "topic_words": topic_words}
+    return pd.DataFrame(data)
 
-def samples_to_csv_bert(samples, topic_numbers, topic_words):
+def get_all_docs_bert(docs, model):
     """
-    Converts list of samples, topic_numbers and topic_words
-    to output an encoded csv for streamlit
+        Args:
+        - docs: List of documents
+        - model: bertopic model
+
+        Returns:
+        - Dataframe with columns 'doc', 'topic_label'. This is all docs from the dataset (docs)    
+        If topic label is -1 then it means it was classified as noise
+    """
+    data = {"doc": docs, "topic_label": model.topics_}
+    return pd.DataFrame(data)
+
+
+def df_to_csv(df):
+    """
+    Converts pandas dataframe to csv for streamlit
 
     Args:
-    - samples: Array of sample documents
-    - topic_numbers: Array of corresponding topic numbers
-    - topic_words: String of representative topic_words for topic
+    - df: pandas dataframe
 
     Returns:
     - CSV object
     """
-    data = {"text": samples, "topic_number": topic_numbers, "topic_words": topic_words}
-    df = pd.DataFrame(data)
     return df.to_csv(index=False).encode("utf-8")
