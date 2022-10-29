@@ -3,6 +3,7 @@ import pandas as pd
 from copy import deepcopy
 from sklearn.feature_extraction.text import CountVectorizer
 
+
 def _get_count_vectorizer():
     cv_params = {}
     return CountVectorizer(**cv_params)
@@ -17,7 +18,6 @@ def _cosine_distance(a_i, a_j):
     cs = _cosine_similarity(a_i, a_j)
     cd = 1 - cs
     return cd
-
 
 def run_representative_sample_test(all, samples, penalty=0):
     '''

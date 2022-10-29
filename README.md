@@ -1,16 +1,19 @@
 # BT4103 Sensemaking of Text Data for Pre-processing   
 
-> Important note: Please create your own branch when working on changes, don't need to do PR but also don't override master
+## Prerequisites
+
+- Python (3.10)
 
 ## Setting up
 
-Install dependencies
+Install dependencies by executing the command below on the terminal
 
 ``` cli
 pip3 install -r requirements.txt
 ```
 
-For running front end
+To run the application, execute the command below
+Ensure that you are in the main directory before executing the command
 
 ``` cli
 streamlit run main.py
@@ -22,6 +25,7 @@ streamlit run main.py
 .
 ├─ .streamlit
     ├─ config.toml ─ "Theme for frontend"
+├─ similarity_metric (Backend)
 ├─ topic_models (Backend)
     ├─ data.py ─ "Data Loading, Preprocessing and Helper Functions"
     ├─ bertopic.py ─ "Bertopic Model Functions"
@@ -31,3 +35,10 @@ streamlit run main.py
 ├─ main.py (Frontend) ─ "Main Streamlit Script"
 ├─ requirements.txt ─ "Python Dependencies"
 ```
+
+## Notes
+
+- Uploading small datasets may result in undesired behaviour or errors for the topic models
+
+- If number of topics chosen is < 10, there would be empty graphs output for NMF.
+    This is expected behaviour.

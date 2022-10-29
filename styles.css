@@ -14,3 +14,8 @@ h1{
 
 
 #MainMenu {visibility: hidden;}
+
+
+[id *= "ldavis"]{
+    display: none;
+}
