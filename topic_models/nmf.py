@@ -1,3 +1,4 @@
+from copy import deepcopy
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -8,6 +9,67 @@ from sklearn.decomposition import NMF
 
 # docs_arr = np.asarray(docs)
 
+def _get_tfidf_vectorizer():
+    tfidf_params = {'min_df': 0.0008, 
+                    'max_df': 0.90, 
+                    'max_features': 500, 
+                    'norm': 'l1'}
+    return TfidfVectorizer(**tfidf_params)
+
+def run_nmf(docs, num_topics):
+    '''
+    W is the Document-Topic matrix. 
+    Each row in W represents the Document and the entries represents the Document's rank in a Topic.
+    H is the Topic-Word matrix (weighting). 
+    Each column in H represents a Word and the entries represents the Word's rank in a Topic.
+    Matrix multiplication of the factored components, W x H results in the input Document-Word matrix.
+
+    Parameters
+    ----------
+    docs : np.array
+        An array of documents. Note that each document is a string of the processed text.
+
+    num_topics : int
+        Number of topics to learn.
+    
+    Returns
+    ----------
+    nmf : sklearn.estimator
+        The fitted nmf sklearn estimator instance.
+    
+    tfidf_feature_names: list[str]
+        Vocabulary to aid visualisation.
+    
+    W: np.array
+        Document-Topic matrix.
+    
+    H: np.array
+        Topic-Word matrix.
+
+    '''
+    nmf_params = {'n_components': num_topics, 
+                'alpha_W': 3.108851387228361e-05, 
+                'alpha_H': 8.312434671077156e-05, 
+                'l1_ratio': 0.3883534426209613, 
+                'beta_loss': 'kullback-leibler', 
+                'init': 'nndsvda', 
+                'solver': 'mu', 
+                'max_iter': 1000, 
+                'random_state': 4013, 
+                'tol': 0.0001}
+    
+    tfidf_vectorizer = _get_tfidf_vectorizer()
+    tfidf = tfidf_vectorizer.fit_transform(docs)
+
+    tfidf_feature_names = tfidf_vectorizer.get_feature_names_out()
+
+    nmf = NMF(**nmf_params)
+    nmf.fit(tfidf)
+
+    W = nmf.fit_transform(tfidf)
+    H = nmf.components_
+
+    return nmf, tfidf_feature_names, W, H
 
 def plot_top_words(model, feature_names, n_top_words, title):
     '''
@@ -44,63 +106,7 @@ def plot_top_words(model, feature_names, n_top_words, title):
     plt.subplots_adjust(top=0.90, bottom=0.05, wspace=0.90, hspace=0.3)
     plt.show()
 
-def get_tfidf_vectorizer():
-    tfidf_params = {'min_df': 0.0008, 
-                    'max_df': 0.90, 
-                    'max_features': 500, 
-                    'norm': 'l1'}
-    return TfidfVectorizer(**tfidf_params)
-
-def run_nmf(docs, num_topics):
-    '''
-    Parameters
-    ----------
-    docs : np.array
-        An array of documents. Note that each document is a string of the processed text.
-
-    num_topics : int
-        Number of topics to learn.
-    
-    Returns
-    ----------
-    nmf : sklearn.estimator
-        The fitted nmf sklearn estimator instance.
-    tfidf_feature_names: list[str]
-        Vocabulary to aid visualisation.
-    '''
-    nmf_params = {'n_components': num_topics, 
-                'alpha_W': 3.108851387228361e-05, 
-                'alpha_H': 8.312434671077156e-05, 
-                'l1_ratio': 0.3883534426209613, 
-                'beta_loss': 'kullback-leibler', 
-                'init': 'nndsvda', 
-                'solver': 'mu', 
-                'max_iter': 1000, 
-                'random_state': 4013, 
-                'tol': 0.0001}
-    
-    tfidf_vectorizer = get_tfidf_vectorizer()
-    tfidf = tfidf_vectorizer.fit_transform(docs)
-
-    tfidf_feature_names = tfidf_vectorizer.get_feature_names_out()
-
-    nmf = NMF(**nmf_params)
-    nmf.fit(tfidf)
-
-    '''
-    W is the Document-Topic matrix. 
-    Each row in W represents the Document and the entries represents the Document's rank in a Topic.
-    H is the Topic-Word matrix (weighting). 
-    Each column in H represents a Word and the entries represents the Word's rank in a Topic.
-    Matrix multiplication of the factored components, W x H results in the input Document-Word matrix.
-    '''
-
-    W = nmf.fit_transform(tfidf)
-    H = nmf.components_
-
-    return nmf, tfidf_feature_names
-
-def get_doc_topic_df(docs, model, num_topics):
+def get_all_docs_nmf(docs, W, H, feature_names):
     '''
     Parameters
     ----------
@@ -108,65 +114,74 @@ def get_doc_topic_df(docs, model, num_topics):
         An array of documents. Note that each document is a string of the processed text.
         This is same as input into run_nmf.
     
-    model : sklearn.estimator
-        The fitted nmf estimator returned from run_nmf. 
-
-    num_topics : int
-        Number of topics learned.
+    W : np.array
+        Document-Topic matrix. 
+    
+    H : np.array
+        Topic-Word matrix.
+    
+    feature_names : np.array
+        The feature names used for training (Selected by TF-IDF Vectorizer).
     
     Returns
     ----------
     doc_topic_df : pd.DataFrame
-        df with 3 columns, topic, topic_score and doc which are 
-        the topic labels, scores and document index respectively.
+        df with 4 columns, 'doc', 'topic_label', 'topic_score' and 'top_words'.
     '''
-    tfidf_vectorizer = get_tfidf_vectorizer()
-    tfidf = tfidf_vectorizer.fit_transform(docs)
+    doc_topic_df = pd.DataFrame(W)
 
-    W = model.fit_transform(tfidf)
-    W = pd.DataFrame(W)
+    num_topics = doc_topic_df.shape[1]
 
-    W['topic'] = W.apply(lambda r: r.argmax(), axis=1)
-    W['topic_score'] = W.apply(lambda r: r[:num_topics].max(), axis=1)
-    W['doc'] = W.index
+    doc_topic_df['topic_label'] = doc_topic_df.apply(lambda r: r.argmax(), axis=1)
+    doc_topic_df['topic_score'] = doc_topic_df.apply(lambda r: r[:num_topics].max(), axis=1)
+    doc = list(docs[doc_topic_df.index])
+    doc_topic_df['doc'] = doc
+    doc_topic_df['top_words'] = ''
 
-    doc_topic_df = W[['topic', 'topic_score', 'doc']]
+    for topic_idx, topic in enumerate(H):
+        n_top_words = 10
+        top_features_ind = topic.argsort()[: -n_top_words - 1 : -1]
+        top_features = ','.join([feature_names[i] for i in top_features_ind])
+        doc_topic_df.top_words[doc_topic_df.topic_label == topic_idx] = top_features
+
+    doc_topic_df = doc_topic_df[['doc', 'topic_label', 'topic_score', 'top_words']]
 
     return doc_topic_df
 
-def get_top_docs_nmf(df, docs, model, num_topics, k):
+def get_top_docs_nmf(docs, W, H, feature_names, k):
     '''
     Parameters
     ----------
-    df : pd.DataFrame
-        Original dataframe with 'text' column.
-    
     docs : np.array
         An array of documents. Note that each document is a string of the processed text.
         This is same as input into run_nmf.
     
-    model : sklearn.estimator
-        The fitted nmf estimator returned from run_nmf. 
-
-    num_topics : int
-        Number of topics learned.
+    W : np.array
+        Document-Topic matrix. 
+    
+    H : np.array
+        Topic-Word matrix.
+    
+    feature_names : np.array
+        The feature names used for training (Selected by TF-IDF Vectorizer).
     
     k : int
         The top k number of docs will be taken from each topic's docs.
     
     Returns
     ----------
-    top_k_docs : list
-        Array of top scoring sample docs for the topics.
+    top_docs_df : pd.DataFrame
+        df with 4 columns, 'doc', 'topic_label', 'topic_score' and 'top_words'.
+        df only contains the top k docs with highest topic scores.
     '''
-    doc_topic_df = get_doc_topic_df(docs, model, num_topics)
+    df = get_all_docs_nmf(docs, W, H, feature_names)
+
+    tmp = df.groupby('topic_label').topic_score.nlargest(k)
 
     docs_idx = []
+    for topic_label in tmp.topic_label.unique():
+        docs_idx.extend(list(tmp[topic_label].index))
+    
+    top_docs_df = df.iloc[docs_idx]
 
-    for topic in doc_topic_df.topic.unique():
-        top_k_docs_df = doc_topic_df[doc_topic_df.topic == topic].sort_values('topic_score', ascending=False)[:k]
-        docs_idx.extend(list(top_k_docs_df.doc))
-
-    top_k_docs = list(df.loc[docs_idx, 'text'].values[0])
-
-    return top_k_docs
+    return top_docs_df
