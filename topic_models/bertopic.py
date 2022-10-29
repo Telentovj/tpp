@@ -71,6 +71,6 @@ def samples_to_csv_bert(samples, topic_numbers, topic_words):
     Returns:
     - CSV object
     """
-    data = {"text": samples, "topic_number": topic_numbers, "topic_word": topic_words}
+    data = {"text": samples, "topic_number": topic_numbers, "topic_words": topic_words}
     df = pd.DataFrame(data)
-    return df.to_csv().encode("utf-8")
+    return df.to_csv(index=False).encode("utf-8")

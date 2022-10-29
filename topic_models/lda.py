@@ -37,20 +37,31 @@ def get_top_documents_lda(df, bow_corpus, model, num_topics, k):
     - k: how many sample to be extracted per topic
 
     Returns:
-    - samples: Array of sample documents
+    - samples: list of sample documents
+    - topic_numbers: list of dominant topic number for each document
+    - topic_words: list of topic words for the topic
+    - topic_scores: topic score for the document for this topic
     """
 
     samples = []
-    df["dominant_topic"] = [
-        max(model.get_document_topics(bow), key=lambda tup: tup[1])[0]
+    topic_numbers = []
+    topic_words = []
+    topic_scores = []
+
+    df[["dominant_topic", "topic_score"]] = [
+        max(model.get_document_topics(bow), key=lambda tup: tup[1])
         for bow in bow_corpus
     ]
 
     for topic_num in range(num_topics):
-        df_selected_topic = df[df["dominant_topic"] == topic_num].copy()
-        samples.append(df_selected_topic["text"][:k])
-
-    return samples
+      df_selected_topic = df[df['dominant_topic'] == topic_num].copy()
+      samples = samples + list(df_selected_topic['text'][:k].values)
+      words = " ".join([x[0] for x in model.show_topic(topic_num, topn=10)])
+      topic_words = topic_words + [words] * k
+      topic_numbers = topic_numbers + [topic_num] * k
+      topic_scores = topic_scores + list(df_selected_topic['topic_score'][:k].values)
+  
+    return samples, topic_numbers, topic_words, topic_scores
 
 
 def get_topic_lda(model, topic_num):

@@ -158,13 +158,13 @@ if st.session_state.currentPage == "main_page":
                     col1.write("Bert Model Completed")
 
                 # Lda logic
-                # if st.session_state['use_lda']:
-                #     col2.write("Running LDA.....")
-                #     lda_model, bow_corpus, dictionary = run_lda(docs_tokenized, number_of_topics)
-                #     st.session_state["lda"] = lda_model
-                #     st.session_state["bow_corpus"] = bow_corpus
-                #     st.session_state["lda_dictionary"] = dictionary
-                #     col2.write("LDA Model Completed")
+                if st.session_state['use_lda']:
+                    col2.write("Running LDA.....")
+                    lda_model, bow_corpus, dictionary = run_lda(docs_tokenized, number_of_topics)
+                    st.session_state["lda"] = lda_model
+                    st.session_state["bow_corpus"] = bow_corpus
+                    st.session_state["lda_dictionary"] = dictionary
+                    col2.write("LDA Model Completed")
 
                 # top2vec logic
                 # if st.session_state['use_top2vec']:
@@ -235,15 +235,15 @@ if st.session_state["currentPage"] == "insight_page":
         #     top2vec_expander.plotly_chart(fig, use_container_width=True)
 
         # LDA
-        # if st.session_state['use_lda']:
-        # lda = st.session_state['lda']
-        # with st.expander("LDA"):
-        #     col1, col2, col3 = st.columns([0.5, 0.1, 0.5])
-        #     components.html(visualize_chart_lda(
-        #         lda,
-        #         st.session_state['bow_corpus'],
-        #         st.session_state['lda_dictionary']
-        #     ), width=1300, height=800, scrolling=True)
+        if st.session_state['use_lda']:
+            lda = st.session_state['lda']
+            with st.expander("LDA"):
+                col1, col2, col3 = st.columns([0.5, 0.1, 0.5])
+                components.html(visualize_chart_lda(
+                    lda,
+                    st.session_state['bow_corpus'],
+                    st.session_state['lda_dictionary']
+                ), width=1300, height=800, scrolling=True)
 
         # NMF
         if st.session_state["use_nmf"]:
@@ -282,12 +282,12 @@ if st.session_state["currentPage"] == "insight_page":
         #                             args=("top2vec",),
         #                             disabled=(st.session_state['use_top2vec'] == False),
         #                         )
-        # generate_with_lda = col3.button(
-        #                         "Generate dataset with LDA",
-        #                         on_click=set_topic_model,
-        #                         args=("top2vec",),
-        #                         disabled=(st.session_state['use_lda'] == False),
-        #                     )
+        generate_with_lda = col3.button(
+                                "Generate dataset with LDA",
+                                on_click=set_topic_model,
+                                args=("lda",),
+                                disabled=(st.session_state['use_lda'] == False),
+                            )
         generate_with_nmf = col4.button(
             "Generate dataset with NMF",
             on_click=set_topic_model,
@@ -304,7 +304,7 @@ if st.session_state["currentPage"] == "download_page":
     download_page = st.container()
     topic_model = st.session_state["topicModel"]
     number_of_topics = st.session_state["number_of_topics"]
-    # bow_corpus = st.session_state["bow_corpus"]
+    bow_corpus = st.session_state["bow_corpus"]
     docs = st.session_state["docs"]
     df = st.session_state["dataframe"]
     k = st.session_state["k"]
@@ -319,10 +319,10 @@ if st.session_state["currentPage"] == "download_page":
     #     samples = get_top_documents_Top2Vec(df, top2vec, number_of_topics, k)
     #     labeled_csv = samples_to_csv(samples)
 
-    # if topic_model == "lda" and st.session_state['use_lda']:
-    #     lda = st.session_state['lda']
-    #     samples = get_top_documents_lda(df, bow_corpus, lda, number_of_topics, k)
-    #     labeled_csv = samples_to_csv(samples)
+    if topic_model == "lda" and st.session_state['use_lda']:
+        lda = st.session_state['lda']
+        samples, topic_numbers, topic_words, topic_scores = get_top_documents_lda(df, bow_corpus, lda, number_of_topics, k)
+        labeled_csv = samples_to_csv(samples, topic_numbers, topic_words, topic_scores)
 
     if topic_model == "nmf" and st.session_state["use_nmf"]:
         nmf = st.session_state["nmf"]
