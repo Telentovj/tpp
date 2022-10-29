@@ -19,100 +19,85 @@ def _cosine_distance(a_i, a_j):
     cd = 1 - cs
     return cd
 
-
-def run_representative_sample_test(docs, doc_topic_df, sample_size=1000, penalty=0):
-    """
+def run_representative_sample_test(all, samples, penalty=0):
+    '''
     Parameters
     ----------
-    docs : np.array
-        An array of documents. Note that each document is a string of the processed text.
-
-    doc_topic_df : pd.DataFrame
-        NOTE: a dataframe which must include 3 columns:
-          - 'topic' containing the topic labels
-          - 'topic_score' containing the score of the topic for the doc
-          - 'doc' containing the unique doc index that maps to docs
-
+    all : pd.DataFrame
+        df with columns 'doc', 'topic_label'.
+        this df contains all the docs.
+    
+    samples : pd.DataFrame
+        df with columns 'doc', 'topic_label'.
+        this df only contains the samples.
+    
+    penalty: float
+        the penalty term for words that are in the all df and not in the samples df.
+        Defaults to 0.
+    
     Returns
     ----------
-    repr_pct : float
-        The final metric in percentage terms on how representative are the topic samples.
-    """
+    metrics : tuple
+        a tuple containing the final Cosine Similarity, Cosine Distance and Representative Percentage.
+    '''
     cv = _get_count_vectorizer()
-    docs_cv = cv.fit_transform(docs)
+    all_cv = cv.fit_transform(all.doc)
 
-    original_word_ct = pd.DataFrame(pd.DataFrame(docs_cv.todense()).sum(axis=0))
-    original_word_ct.columns = ["count"]
+    # Get words and word counts for all docs
+    all_word_ct = pd.DataFrame(pd.DataFrame(all_cv.todense()).sum(axis=0))
+    all_word_ct.columns = ['count']
+    all_idx_word_map = pd.DataFrame(
+        {'word': cv.vocabulary_.keys()}, index=cv.vocabulary_.values()).sort_index()
+    all_idx_word_count_map = pd.merge(
+        all_idx_word_map, all_word_ct, how='left', left_index=True, right_index=True)
+    all_idx_word_count_map.columns = ['all_word', 'all_word_count']
 
-    original_index_word_map = pd.DataFrame(
-        {"word": count_vectorizer.vocabulary_.keys()},
-        index=count_vectorizer.vocabulary_.values(),
-    ).sort_index()
-
-    original_index_word_count_map = pd.merge(
-        original_index_word_map,
-        original_word_ct,
-        how="left",
-        left_index=True,
-        right_index=True,
-    )
-    original_index_word_count_map.columns = ["original_word", "original_word_count"]
-
+    topics_cs_list = []
     topics_cd_list = []
 
-    df = deepcopy(doc_topic_df)
+    for topic_label in all.topic_label.unique():
+        cv = _get_count_vectorizer()
+        samples_cv = cv.fit_transform(samples.doc)
 
-    for topic_label in df.topic.unique():
-        # Get sample of docs for this topic
-        this_topic_df = df[df.topic == topic_label]
-        this_topic_docs = docs[list(this_topic_df.doc)]
-        this_topic_docs_sample = np.random.choice(
-            this_topic_docs, size=sample_size, replace=False
-        )
+        # Get words and word counts for the sample docs
+        samples_word_ct = pd.DataFrame(
+            pd.DataFrame(samples_cv.todense()).sum(axis=0))
+        samples_word_ct.columns = ['count']
+        samples_idx_word_map = pd.DataFrame(
+            {'word': cv.vocabulary_.keys()}, index=cv.vocabulary_.values()).sort_index()
+        samples_idx_word_count_map = pd.merge(
+            samples_idx_word_map, samples_word_ct, how='left', left_index=True, right_index=True)
+        samples_idx_word_count_map.columns = [
+            'samples_word', 'samples_word_count']
 
-        docs_sample_cv = cv.fit_transform(this_topic_docs_sample)
+        # Map all docs to sample docs by the word
+        tmp = pd.merge(all_idx_word_count_map, samples_idx_word_count_map,
+                       how='left', left_on='all_word', right_on='samples_word')
 
-        sample_word_ct = pd.DataFrame(
-            pd.DataFrame(docs_sample_cv.todense()).sum(axis=0)
-        )
-        sample_word_ct.columns = ["count"]
-
-        sample_index_word_map = pd.DataFrame(
-            {"word": count_vectorizer.vocabulary_.keys()},
-            index=count_vectorizer.vocabulary_.values(),
-        ).sort_index()
-
-        sample_index_word_count_map = pd.merge(
-            sample_index_word_map,
-            sample_word_ct,
-            how="left",
-            left_index=True,
-            right_index=True,
-        )
-        sample_index_word_count_map.columns = ["sample_word", "sample_word_count"]
-
-        tmp = pd.merge(
-            original_index_word_count_map,
-            sample_index_word_count_map,
-            how="left",
-            left_on="original_word",
-            right_on="sample_word",
-        )
-
-        tmp.sample_word_count = tmp.sample_word_count.fillna(penalty)
+        # Apply penalty to samples
+        tmp.samples_word_count = tmp.samples_word_count.fillna(penalty)
 
         # Get comparison arrays and compute cosine distance
-        original_v = np.asarray(tmp.original_word_count)
-        sample_v = np.asarray(tmp.sample_word_count)
+        original_v = np.asarray(tmp.all_word_count)
+        sample_v = np.asarray(tmp.samples_word_count)
 
+        # Cosine Similarity
+        this_topic_cs = _cosine_similarity(original_v, sample_v)
+        topics_cs_list.append(this_topic_cs)
+
+        # Cosine Distance
         this_topic_cd = _cosine_distance(original_v, sample_v)
-
         topics_cd_list.append(this_topic_cd)
 
-    # Get avg cosine distance
+    # Get final Cosine Similarity
+    final_cs = sum(topics_cs_list) / len(topics_cs_list)
+
+    # Get final cosine distance
     final_cd = sum(topics_cd_list) / len(topics_cd_list)
 
     # Final representative level metric as a pct
-    repr_pct = ((2 - final_cd) / 2) * 100
+    repr_pct = ((2-final_cd) / 2) * 100
 
-    return repr_pct
+    metrics = (final_cs, final_cd, repr_pct)
+
+    return metrics
