@@ -18,7 +18,7 @@ def run_lda(docs_tokenized, num_topics):
     - dictionary: dictionary of tokens and their id
     """
     dictionary = gensim.corpora.Dictionary(docs_tokenized)
-    dictionary.filter_extremes(no_below=15, no_above=0.5, keep_n=100000)
+    # dictionary.filter_extremes(no_below=15, no_above=0.5, keep_n=100000)
     bow_corpus = [dictionary.doc2bow(doc) for doc in docs_tokenized]
     lda_model = gensim.models.LdaModel(
         bow_corpus, num_topics=num_topics, id2word=dictionary, passes=2
@@ -30,19 +30,25 @@ def run_lda(docs_tokenized, num_topics):
 def get_all_docs_lda(df, bow_corpus, model):
     """
     Args:
-    - df: List of documents
+    - df: pandas dataframe with columns: text
     - bow_corpus: Bag of Words
     - model: LDA model
 
     Returns:
     - Dataframe with columns 'doc', 'topic_label'. This is all docs from the dataset (docs)
     """
-    df[["topic_label", "topic_score"]] = [
-        max(model.get_document_topics(bow), key=lambda tup: tup[1])
+
+    topic_label = [
+        max(model.get_document_topics(bow), key=lambda tup: tup[1])[0]
         for bow in bow_corpus
     ]
 
-    return df[["text", "topic_label", "topic_score"]]
+    new_df = pd.DataFrame({
+        "doc": df.text,
+        "topic_label": topic_label
+    })
+
+    return new_df
 
 
 def get_top_documents_lda(df, bow_corpus, model, num_topics, k):
@@ -67,25 +73,19 @@ def get_top_documents_lda(df, bow_corpus, model, num_topics, k):
     topic_words = []
     topic_scores = []
 
-    all_docs_df = get_all_docs_lda(df, bow_corpus, model)
+    df[["topic_label", "topic_score"]] = [
+        max(model.get_document_topics(bow), key=lambda tup: tup[1])
+        for bow in bow_corpus
+    ]
 
     for topic_num in range(num_topics):
-        df_selected_topic = all_docs_df[all_docs_df["topic_label"] == topic_num].copy()
-        samples = samples + list(df_selected_topic["text"][:k].values)
+        df_selected_topic = df[df["topic_label"] == topic_num].copy()
+        added_samples = list(df_selected_topic["text"][:k].values)
+        samples = samples + added_samples
         words = " ".join([x[0] for x in model.show_topic(topic_num, topn=10)])
-        topic_words = topic_words + [words] * k
-        topic_numbers = topic_numbers + [topic_num] * k
+        topic_words = topic_words + [words] * len(added_samples)
+        topic_numbers = topic_numbers + [topic_num] * len(added_samples)
         topic_scores = topic_scores + list(df_selected_topic["topic_score"][:k].values)
-
-    # Additional logic to remove excess if dataset is too small
-    min_length = min(
-        len(samples), len(topic_words), len(topic_numbers), len(topic_scores)
-    )
-
-    samples = samples[:min_length]
-    topic_words = samples[:min_length]
-    topic_numbers = samples[:min_length]
-    topic_scores = samples[:min_length]
 
     # Convert to a proper dataframe
     data = {"doc": samples, "topic_label": topic_numbers, "topic_words": topic_words}
