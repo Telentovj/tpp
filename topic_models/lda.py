@@ -37,7 +37,6 @@ def get_all_docs_lda(df, bow_corpus, model):
     Returns:
     - Dataframe with columns 'doc', 'topic_label'. This is all docs from the dataset (docs)
     """
-    print(bow_corpus)
     df[["topic_label", "topic_score"]] = [
         max(model.get_document_topics(bow), key=lambda tup: tup[1])
         for bow in bow_corpus
