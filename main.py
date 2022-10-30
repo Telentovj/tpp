@@ -343,10 +343,16 @@ if st.session_state["currentPage"] == "download_page":
         bow_corpus = st.session_state["bow_corpus"]
 
     if topic_model == "bert" and st.session_state["use_bert"]:
+        """
+        1. Get model
+        2. Get samples doc
+        3. convert samples doc to csv
+        4. Find similarity score using (all docs, sample doc)
+        """
         bert = st.session_state["bert"]
-        df = get_top_docs_bert(df, bert, k)
-        labeled_csv = df_to_csv(df)
-        print(run_representative_sample_test(get_all_docs_bert(docs, bert), df))
+        sample_df = get_top_docs_bert(st.session_state["dataframe"], bert, k)
+        labeled_csv = df_to_csv(sample_df)
+        print(run_representative_sample_test(get_all_docs_bert(docs, bert), sample_df))
 
     # if topic_model == "top2vec" and st.session_state['use_top2vec']:
     #     top2vec = st.session_state['top2vec']
@@ -355,15 +361,16 @@ if st.session_state["currentPage"] == "download_page":
 
     if topic_model == "lda" and st.session_state["use_lda"]:
         lda = st.session_state["lda"]
-        samples, topic_numbers, topic_words, topic_scores = get_top_documents_lda(
+        sample_df = get_top_documents_lda(
             df, bow_corpus, lda, number_of_topics, k
         )
-        labeled_csv = samples_to_csv(samples, topic_numbers, topic_words, topic_scores)
+        labeled_csv = df_to_csv(sample_df)
+        print(run_representative_sample_test(get_all_docs_lda(docs, bow_corpus, lda), sample_df))
 
     if topic_model == "nmf" and st.session_state["use_nmf"]:
         nmf = st.session_state["nmf"]
         samples = get_top_docs_nmf(
-            docs,
+            st.session_state["docs"],
             st.session_state["W"],
             st.session_state["H"],
             st.session_state["tfidf_feature_names"],
