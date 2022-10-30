@@ -226,7 +226,6 @@ def get_top_docs_nmf(docs, W, H, feature_names, k):
     df = get_all_docs_nmf(docs, W, H, feature_names)
 
     tmp = df.groupby('topic_label').topic_score.nlargest(k)
-
     docs_idx = []
     for topic_label in df.topic_label.unique():
         docs_idx.extend(list(tmp[topic_label].index))
