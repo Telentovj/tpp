@@ -1,3 +1,4 @@
+from similarity_metric.rep_metric_cosine_similarity import *
 import streamlit as st
 import math
 from topic_models.data import *
@@ -17,7 +18,6 @@ if "currentPage" not in st.session_state:
 
 st.title("Text Pre Processing")
 main_page = st.empty()
-faq_page = st.empty()
 insight_page = st.empty()
 download_page = st.empty()
 
@@ -44,11 +44,27 @@ def set_topic_model(model):
 
 
 # For checkbox widget to toggle usage of model
-def set_model_usage(session_state_name, current_session_state_value):
+def set_model_usage(
+    session_state_name, current_session_state_value, model_decide_topics_session_state
+):
     if current_session_state_value:
         st.session_state[session_state_name] = False
     else:
+        # Case where the person selects model decide but then wants to add nmf/lda
+        if session_state_name == "use_lda" or session_state_name == "use_nmf":
+            st.session_state["model_decide_topics"] = False
         st.session_state[session_state_name] = True
+
+
+def allow_model_to_decide(model_decide_topics_session_state):
+    if model_decide_topics_session_state:
+        st.session_state["model_decide_topics"] = False
+    else:
+        st.session_state["use_lda"] = False
+        st.session_state["use_nmf"] = False
+        st.session_state["use_bert"] = True
+        st.session_state["use_top2vec"] = True
+        st.session_state["model_decide_topics"] = True
 
 
 # Main page
@@ -62,10 +78,6 @@ if st.session_state.currentPage == "main_page":
             unsafe_allow_html=True,
         )
 
-        # Faqs
-        col1, col2, col3 = st.columns([1, 0.25, 1])
-        faq = col2.button("Read our FAQs!", on_click=change_page, args=("faq_page",))
-
         # Initalise session states for model usage, defaults to True.
         if "use_bert" not in st.session_state:
             st.session_state["use_bert"] = True
@@ -76,6 +88,10 @@ if st.session_state.currentPage == "main_page":
         if "use_nmf" not in st.session_state:
             st.session_state["use_nmf"] = True
 
+        # Initalise session state for model deciding number of topics:
+        if "model_decide_topics" not in st.session_state:
+            st.session_state["model_decide_topics"] = False
+
         # Checkboxes for selecting which models to use
         use_bert, use_lda, use_top2vec, use_nmf = st.columns([1, 1, 1, 1])
         use_bert.checkbox(
@@ -85,6 +101,7 @@ if st.session_state.currentPage == "main_page":
             args=(
                 "use_bert",
                 st.session_state["use_bert"],
+                st.session_state["model_decide_topics"],
             ),
         )
         use_lda.checkbox(
@@ -94,7 +111,9 @@ if st.session_state.currentPage == "main_page":
             args=(
                 "use_lda",
                 st.session_state["use_lda"],
+                st.session_state["model_decide_topics"],
             ),
+            disabled=st.session_state["model_decide_topics"],
         )
         use_top2vec.checkbox(
             "Use Top2Vec Model",
@@ -103,6 +122,7 @@ if st.session_state.currentPage == "main_page":
             args=(
                 "use_top2vec",
                 st.session_state["use_top2vec"],
+                st.session_state["model_decide_topics"],
             ),
         )
         use_nmf.checkbox(
@@ -112,15 +132,31 @@ if st.session_state.currentPage == "main_page":
             args=(
                 "use_nmf",
                 st.session_state["use_nmf"],
+                st.session_state["model_decide_topics"],
             ),
+            disabled=st.session_state["model_decide_topics"],
         )
 
         # Input for number of topics
-        number_of_topics = st.number_input(
-            "Insert number of Topics, decimals will be rounded down.",
-            min_value=1,
-            max_value=10,
-            value=3,
+        if st.session_state["model_decide_topics"]:
+            number_of_topics = st.number_input(
+                "Insert number of Topics, decimals will be rounded down.",
+                disabled=True,
+            )
+        else:
+            number_of_topics = st.number_input(
+                "Insert number of Topics, decimals will be rounded down.",
+                min_value=1,
+                max_value=10,
+                value=3,
+            )
+
+        # Allow model to decide number of topics
+        st.checkbox(
+            "Allow model to decide number of topics. Note that only the Top2Vec and Bert allow this feature.",
+            value=st.session_state["model_decide_topics"],
+            on_change=allow_model_to_decide,
+            args=(st.session_state["model_decide_topics"],),
         )
 
         # File uploader
@@ -158,9 +194,11 @@ if st.session_state.currentPage == "main_page":
                     col1.write("Bert Model Completed")
 
                 # Lda logic
-                if st.session_state['use_lda']:
+                if st.session_state["use_lda"]:
                     col2.write("Running LDA.....")
-                    lda_model, bow_corpus, dictionary = run_lda(docs_tokenized, number_of_topics)
+                    lda_model, bow_corpus, dictionary = run_lda(
+                        docs_tokenized, number_of_topics
+                    )
                     st.session_state["lda"] = lda_model
                     st.session_state["bow_corpus"] = bow_corpus
                     st.session_state["lda_dictionary"] = dictionary
@@ -177,10 +215,12 @@ if st.session_state.currentPage == "main_page":
                 # nmf logic
                 if st.session_state["use_nmf"]:
                     col4.write("Running NMF.....")
-                    nmf, tfidf_feature_names = run_nmf(docs, number_of_topics)
+                    nmf, tfidf_feature_names, W, H = run_nmf(docs, number_of_topics)
                     st.session_state["nmf"] = nmf
                     st.session_state["tfidf_feature_names"] = tfidf_feature_names
                     st.session_state["running_nmf"] = False
+                    st.session_state["W"] = W
+                    st.session_state["H"] = H
                     col4.write("NMF Model Completed")
 
                 insight1, insight2, insight3 = st.columns([1, 0.5, 1])
@@ -191,19 +231,6 @@ if st.session_state.currentPage == "main_page":
                 )
             else:
                 st.warning("Please insert the number of topics.")
-
-
-# FAQ page
-if st.session_state["currentPage"] == "faq_page":
-    faq_page = st.container()
-    with faq_page:
-        option = st.selectbox(
-            "Frequently Asked Questions",
-            ("How to format my excel file?", "How to do that?", "How to do those?"),
-        )
-        st.write("Answer for: " + option)
-        close_faq = st.button("Close Faqs", on_click=change_page, args=("main_page",))
-
 
 # Insights page
 if st.session_state["currentPage"] == "insight_page":
@@ -235,15 +262,20 @@ if st.session_state["currentPage"] == "insight_page":
         #     top2vec_expander.plotly_chart(fig, use_container_width=True)
 
         # LDA
-        if st.session_state['use_lda']:
-            lda = st.session_state['lda']
+        if st.session_state["use_lda"]:
+            lda = st.session_state["lda"]
             with st.expander("LDA"):
                 col1, col2, col3 = st.columns([0.5, 0.1, 0.5])
-                components.html(visualize_chart_lda(
-                    lda,
-                    st.session_state['bow_corpus'],
-                    st.session_state['lda_dictionary']
-                ), width=1300, height=800, scrolling=True)
+                components.html(
+                    visualize_chart_lda(
+                        lda,
+                        st.session_state["bow_corpus"],
+                        st.session_state["lda_dictionary"],
+                    ),
+                    width=1300,
+                    height=800,
+                    scrolling=True,
+                )
 
         # NMF
         if st.session_state["use_nmf"]:
@@ -283,11 +315,11 @@ if st.session_state["currentPage"] == "insight_page":
         #                             disabled=(st.session_state['use_top2vec'] == False),
         #                         )
         generate_with_lda = col3.button(
-                                "Generate dataset with LDA",
-                                on_click=set_topic_model,
-                                args=("lda",),
-                                disabled=(st.session_state['use_lda'] == False),
-                            )
+            "Generate dataset with LDA",
+            on_click=set_topic_model,
+            args=("lda",),
+            disabled=(st.session_state["use_lda"] == False),
+        )
         generate_with_nmf = col4.button(
             "Generate dataset with NMF",
             on_click=set_topic_model,
@@ -304,30 +336,51 @@ if st.session_state["currentPage"] == "download_page":
     download_page = st.container()
     topic_model = st.session_state["topicModel"]
     number_of_topics = st.session_state["number_of_topics"]
-    # bow_corpus = st.session_state["bow_corpus"]
     docs = st.session_state["docs"]
     df = st.session_state["dataframe"]
     k = st.session_state["k"]
+    if st.session_state["use_lda"]:
+        bow_corpus = st.session_state["bow_corpus"]
 
     if topic_model == "bert" and st.session_state["use_bert"]:
         bert = st.session_state["bert"]
         df = get_top_docs_bert(df, bert, k)
         labeled_csv = df_to_csv(df)
+        print(run_representative_sample_test(get_all_docs_bert(docs, bert), df))
 
     # if topic_model == "top2vec" and st.session_state['use_top2vec']:
     #     top2vec = st.session_state['top2vec']
     #     samples = get_top_documents_Top2Vec(df, top2vec, number_of_topics, k)
     #     labeled_csv = samples_to_csv(samples)
 
-    if topic_model == "lda" and st.session_state['use_lda']:
-        lda = st.session_state['lda']
-        samples, topic_numbers, topic_words, topic_scores = get_top_documents_lda(df, bow_corpus, lda, number_of_topics, k)
+    if topic_model == "lda" and st.session_state["use_lda"]:
+        lda = st.session_state["lda"]
+        samples, topic_numbers, topic_words, topic_scores = get_top_documents_lda(
+            df, bow_corpus, lda, number_of_topics, k
+        )
         labeled_csv = samples_to_csv(samples, topic_numbers, topic_words, topic_scores)
 
     if topic_model == "nmf" and st.session_state["use_nmf"]:
         nmf = st.session_state["nmf"]
-        samples = get_top_docs_nmf(df, docs, nmf, number_of_topics, k)
+        samples = get_top_docs_nmf(
+            docs,
+            st.session_state["W"],
+            st.session_state["H"],
+            st.session_state["tfidf_feature_names"],
+            k,
+        )
         labeled_csv = samples_to_csv(samples)
+        print(
+            run_representative_sample_test(
+                get_all_docs_nmf(
+                    docs,
+                    st.session_state["W"],
+                    st.session_state["H"],
+                    st.session_state["tfidf_feature_names"],
+                ),
+                df,
+            )
+        )
 
     with download_page:
         st.write("Download dataset labeled with: " + topic_model)
