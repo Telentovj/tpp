@@ -25,6 +25,23 @@ def run_lda(docs_tokenized, num_topics):
 
     return (lda_model, bow_corpus, dictionary)
 
+def get_all_docs_lda(df, bow_corpus, model):
+    """
+        Args:
+        - df: List of documents
+        - bow_corpus: Bag of Words
+        - model: LDA model
+
+        Returns:
+        - Dataframe with columns 'doc', 'topic_label'. This is all docs from the dataset (docs)    
+    """
+    
+    df[["topic_label", "topic_score"]] = [
+        max(model.get_document_topics(bow), key=lambda tup: tup[1])
+        for bow in bow_corpus
+    ]
+
+    return df[["text", "topic_label", "topic_score"]]
 
 def get_top_documents_lda(df, bow_corpus, model, num_topics, k):
 
@@ -48,13 +65,10 @@ def get_top_documents_lda(df, bow_corpus, model, num_topics, k):
     topic_words = []
     topic_scores = []
 
-    df[["dominant_topic", "topic_score"]] = [
-        max(model.get_document_topics(bow), key=lambda tup: tup[1])
-        for bow in bow_corpus
-    ]
+    all_docs_df = get_all_docs_lda(df, bow_corpus, model)
 
     for topic_num in range(num_topics):
-      df_selected_topic = df[df['dominant_topic'] == topic_num].copy()
+      df_selected_topic = all_docs_df[all_docs_df["topic_label"] == topic_num].copy()
       samples = samples + list(df_selected_topic['text'][:k].values)
       words = " ".join([x[0] for x in model.show_topic(topic_num, topn=10)])
       topic_words = topic_words + [words] * k

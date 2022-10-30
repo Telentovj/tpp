@@ -138,15 +138,27 @@ def wordcloud(df):
 ################################################################
 #                       HELPER FUNCTIONS                       #
 ################################################################
-def samples_to_csv(samples, topic_numbers, topic_words, topic_scores):
+def samples_to_csv(samples, topic_label, topic_words, topic_scores):
     """
     Converts list of samples to output an encoded csv for streamlit
     """
     df = pd.DataFrame({
         "text": samples, 
-        "topic_number": topic_numbers,
+        "topic_label": topic_label,
         "topic_words": topic_words,
         "topic_score": topic_scores
     })
     
+    return df.to_csv(index=False).encode("utf-8")
+
+def df_to_csv(df):
+    """
+    Converts pandas dataframe to csv for streamlit
+
+    Args:
+    - df: pandas dataframe
+
+    Returns:
+    - CSV object
+    """
     return df.to_csv(index=False).encode("utf-8")
