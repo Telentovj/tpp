@@ -183,7 +183,7 @@ def get_all_docs_nmf(docs, W, H, feature_names):
 
     doc_topic_df['topic_label'] = doc_topic_df.apply(lambda r: r.argmax(), axis=1)
     doc_topic_df['topic_score'] = doc_topic_df.apply(lambda r: r[:num_topics].max(), axis=1)
-    doc = list(docs[list(doc_topic_df.index)])
+    doc = list(docs[doc_topic_df.index])
     doc_topic_df['doc'] = doc
     doc_topic_df['top_words'] = ''
 
@@ -228,7 +228,7 @@ def get_top_docs_nmf(docs, W, H, feature_names, k):
     tmp = df.groupby('topic_label').topic_score.nlargest(k)
 
     docs_idx = []
-    for topic_label in tmp.topic_label.unique():
+    for topic_label in df.topic_label.unique():
         docs_idx.extend(list(tmp[topic_label].index))
     
     top_docs_df = df.iloc[docs_idx]
