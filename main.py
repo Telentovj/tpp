@@ -19,7 +19,6 @@ if "currentPage" not in st.session_state:
 st.title("Text Pre Processing")
 main_page = st.empty()
 insight_page = st.empty()
-download_page = st.empty()
 
 # For changing pages
 def change_page(page):
@@ -300,108 +299,103 @@ if st.session_state["currentPage"] == "insight_page":
         )
         st.session_state["k"] = k
 
-        # Generate buttons to go to download page
-        col1, col2, col3, col4 = st.columns([0.25, 0.25, 0.25, 0.25])
-        generate_with_bert = col1.button(
-            "Generate dataset with Bert",
-            on_click=set_topic_model,
-            args=("bert",),
-            disabled=(st.session_state["use_bert"] == False),
-        )
-        # generate_with_top2vec = col2.button(
-        #                             "Generate dataset with Top2Vec",
-        #                             on_click=set_topic_model,
-        #                             args=("top2vec",),
-        #                             disabled=(st.session_state['use_top2vec'] == False),
-        #                         )
-        generate_with_lda = col3.button(
-            "Generate dataset with LDA",
-            on_click=set_topic_model,
-            args=("lda",),
-            disabled=(st.session_state["use_lda"] == False),
-        )
-        generate_with_nmf = col4.button(
-            "Generate dataset with NMF",
-            on_click=set_topic_model,
-            args=("nmf",),
-            disabled=(st.session_state["use_nmf"] == False),
-        )
+        # Process sampled dataset and similarity score
+        if st.session_state["use_bert"]:
+            """
+            1. Get model
+            2. Get samples doc
+            3. convert samples doc to csv
+            4. Find similarity score using (all docs, sample doc)
+            """
+            bert = st.session_state["bert"]
+            sample_df = get_top_docs_bert(st.session_state["dataframe"], bert, k)
+            bert_labeled_csv = df_to_csv(sample_df)
 
-        go_back = st.button(
-            "Go Back to Main Page", on_click=change_page, args=("main_page",)
-        )
+        # if st.session_state['use_top2vec']:
+        #     top2vec = st.session_state['top2vec']
+        #     samples = get_top_documents_Top2Vec(df, top2vec, number_of_topics, k)
+        #     labeled_csv = samples_to_csv(samples)
 
-# Download Page
-if st.session_state["currentPage"] == "download_page":
-    download_page = st.container()
-    topic_model = st.session_state["topicModel"]
-    number_of_topics = st.session_state["number_of_topics"]
-    docs = st.session_state["docs"]
-    df = st.session_state["dataframe"]
-    k = st.session_state["k"]
-    if st.session_state["use_lda"]:
-        bow_corpus = st.session_state["bow_corpus"]
-
-    if topic_model == "bert" and st.session_state["use_bert"]:
-        """
-        1. Get model
-        2. Get samples doc
-        3. convert samples doc to csv
-        4. Find similarity score using (all docs, sample doc)
-        """
-        bert = st.session_state["bert"]
-        sample_df = get_top_docs_bert(st.session_state["dataframe"], bert, k)
-        labeled_csv = df_to_csv(sample_df)
-        print(run_representative_sample_test(get_all_docs_bert(docs, bert), sample_df))
-
-    # if topic_model == "top2vec" and st.session_state['use_top2vec']:
-    #     top2vec = st.session_state['top2vec']
-    #     samples = get_top_documents_Top2Vec(df, top2vec, number_of_topics, k)
-    #     labeled_csv = samples_to_csv(samples)
-
-    if topic_model == "lda" and st.session_state["use_lda"]:
-        lda = st.session_state["lda"]
-        sample_df = get_top_documents_lda(
-            df, bow_corpus, lda, number_of_topics, k
-        )
-        labeled_csv = df_to_csv(sample_df)
-        print(run_representative_sample_test(get_all_docs_lda(docs, bow_corpus, lda), sample_df))
-
-    if topic_model == "nmf" and st.session_state["use_nmf"]:
-        nmf = st.session_state["nmf"]
-        samples = get_top_docs_nmf(
-            st.session_state["docs"],
-            st.session_state["W"],
-            st.session_state["H"],
-            st.session_state["tfidf_feature_names"],
-            k,
-        )
-        labeled_csv = samples_to_csv(samples)
-        print(
-            run_representative_sample_test(
-                get_all_docs_nmf(
-                    docs,
-                    st.session_state["W"],
-                    st.session_state["H"],
-                    st.session_state["tfidf_feature_names"],
-                ),
-                df,
+        if st.session_state["use_lda"]:
+            lda = st.session_state["lda"]
+            sample_df = get_top_documents_lda(
+                st.session_state["dataframe"],
+                st.session_state["bow_corpus"],
+                lda,
+                st.session_state["number_of_topics"],
+                k,
             )
-        )
+            labeled_csv = df_to_csv(sample_df)
+            print(
+                run_representative_sample_test(
+                    get_all_docs_lda(
+                        st.session_state["docs"], st.session_state["bow_corpus"], lda
+                    ),
+                    sample_df,
+                )
+            )
 
-    with download_page:
-        st.write("Download dataset labeled with: " + topic_model)
-        st.download_button(
-            label="Download data as CSV",
-            data=labeled_csv,
-            file_name="test.csv",
-            mime="text/csv",
-        )
+        if st.session_state["use_nmf"]:
+            nmf = st.session_state["nmf"]
+            samples = get_top_docs_nmf(
+                st.session_state["docs"],
+                st.session_state["W"],
+                st.session_state["H"],
+                st.session_state["tfidf_feature_names"],
+                k,
+            )
+            nmf_labeled_csv = df_to_csv(samples)
+            print(
+                run_representative_sample_test(
+                    get_all_docs_nmf(
+                        st.session_state["docs"],
+                        st.session_state["W"],
+                        st.session_state["H"],
+                        st.session_state["tfidf_feature_names"],
+                    ),
+                    samples,
+                )
+            )
 
-        go_back = st.button(
-            "Go Back to Insights", on_click=change_page, args=("insight_page",)
-        )
+        # # Similarity Scores
+        # col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
 
-        go_back_to_start = st.button(
-            "Input another file", on_click=change_page, args=("main_page",)
-        )
+        # bert_similarity_score = st.write(
+        #     run_representative_sample_test(
+        #         get_all_docs_bert(st.session_state["docs"], bert), sample_df
+        #     )
+        # )
+        # top2vec_similarity_score = st.write()
+        # lda_similarity_score = st.write()
+        # nmf_similarity_score = st.write()
+
+        # # Generate buttons to go to download sample csv
+        # col1, col2, col3, col4 = st.columns([0.25, 0.25, 0.25, 0.25])
+        # generate_with_bert = col1.download_button(
+        #     label="Download dataset generated with bert",
+        #     data=bert_labeled_csv,
+        #     file_name="output.csv",
+        #     mime="text/csv",
+        # )
+        # # generate_with_top2vec = col2.download_button(
+        # #                             "Download dataset generated with Top2Vec",
+        # #                             on_click=set_topic_model,
+        # #                             args=("top2vec",),
+        # #                             disabled=(st.session_state['use_top2vec'] == False),
+        # #                         )
+        # generate_with_lda = col3.download_button(
+        #     "Download dataset generated with LDA",
+        #     on_click=set_topic_model,
+        #     args=("lda",),
+        #     disabled=(st.session_state["use_lda"] == False),
+        # )
+        # generate_with_nmf = col4.download_button(
+        #     "Download dataset generated with NMF",
+        #     on_click=set_topic_model,
+        #     args=("nmf",),
+        #     disabled=(st.session_state["use_nmf"] == False),
+        # )
+
+        # go_back = st.button(
+        #     "Go Back to Main Page", on_click=change_page, args=("main_page",)
+        # )
