@@ -18,7 +18,7 @@ def run_lda(docs_tokenized, num_topics):
     - dictionary: dictionary of tokens and their id
     """
     dictionary = gensim.corpora.Dictionary(docs_tokenized)
-    # dictionary.filter_extremes(no_below=15, no_above=0.5, keep_n=100000)
+    dictionary.filter_extremes(no_below=15, no_above=0.5, keep_n=100000)
     bow_corpus = [dictionary.doc2bow(doc) for doc in docs_tokenized]
     lda_model = gensim.models.LdaModel(
         bow_corpus, num_topics=num_topics, id2word=dictionary, passes=2
