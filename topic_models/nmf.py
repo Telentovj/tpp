@@ -71,7 +71,7 @@ def run_nmf(docs, num_topics):
 
     return nmf, tfidf_feature_names, W, H
 
-def plot_top_words(model, feature_names, n_top_words, title):
+def plot_top_words(model, feature_names, n_top_words=10, title="Topics in NMF Model with n Top Words"):
     '''
     Parameters
     ----------
@@ -105,6 +105,55 @@ def plot_top_words(model, feature_names, n_top_words, title):
 
     plt.subplots_adjust(top=0.90, bottom=0.05, wspace=0.90, hspace=0.3)
     plt.show()
+
+def plot_top_words_v2(model, feature_names, n_top_words=10, title="Topics in NMF Model with n Top Words"):
+    '''
+    Parameters
+    ----------
+    model : sklearn.estimator
+        The fitted nmf estimator.
+
+    feature_names : np.array
+        The feature names used for training (Selected by TF-IDF Vectorizer).
+    
+    n_top_words : int
+        The number of top words to show for each topic in plot.
+    
+    title : str
+        The main title of the plot.
+    '''
+    H = model.components_
+    num_topics = H.shape[0]
+
+    for start_topic_idx in range(0, num_topics, 5):
+        end_topic_idx = min(start_topic_idx + 5, num_topics)
+        H_w = H[start_topic_idx : end_topic_idx]
+
+        plot_w = 5
+        if end_topic_idx == num_topics:
+            plot_w = H_w.shape[0]
+      
+        fig, axes = plt.subplots(1, plot_w, figsize=(30, 15), sharex=True)
+        axes.flatten()
+
+        for topic_idx, topic in enumerate(H_w):
+            top_features_ind = topic.argsort()[: -n_top_words - 1 : -1]
+            top_features = [feature_names[i] for i in top_features_ind]
+            weights = topic[top_features_ind]
+
+            ax = axes[topic_idx]
+            ax.barh(top_features, weights, height=0.7)
+            ax.set_title(f"Topic {start_topic_idx + topic_idx + 1}", fontdict={"fontsize": 30})
+            ax.invert_yaxis()
+            ax.tick_params(axis="both", which="major", labelsize=20)
+            for i in "top right left".split():
+                ax.spines[i].set_visible(False)
+            
+            if start_topic_idx == 0:
+                fig.suptitle(title, fontsize=40)
+
+        plt.subplots_adjust(top=0.90, bottom=0.05, wspace=0.90, hspace=0.3)
+        plt.show()
 
 def get_all_docs_nmf(docs, W, H, feature_names):
     '''
