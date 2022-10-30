@@ -17,7 +17,7 @@ def run_lda(docs_tokenized, num_topics):
     - dictionary: dictionary of tokens and their id
     """
     dictionary = gensim.corpora.Dictionary(docs_tokenized)
-    dictionary.filter_extremes(no_below=15, no_above=0.5, keep_n=100000)
+    # dictionary.filter_extremes(no_below=15, no_above=0.5, keep_n=100000)
     bow_corpus = [dictionary.doc2bow(doc) for doc in docs_tokenized]
     lda_model = gensim.models.LdaModel(
         bow_corpus, num_topics=num_topics, id2word=dictionary, passes=2
@@ -69,10 +69,11 @@ def get_top_documents_lda(df, bow_corpus, model, num_topics, k):
 
     for topic_num in range(num_topics):
       df_selected_topic = all_docs_df[all_docs_df["topic_label"] == topic_num].copy()
-      samples = samples + list(df_selected_topic['text'][:k].values)
+      added_samples = list(df_selected_topic['text'][:k].values)
+      samples = samples + added_samples
       words = " ".join([x[0] for x in model.show_topic(topic_num, topn=10)])
-      topic_words = topic_words + [words] * k
-      topic_numbers = topic_numbers + [topic_num] * k
+      topic_words = topic_words + [words] * len(added_samples)
+      topic_numbers = topic_numbers + [topic_num] * len(added_samples)
       topic_scores = topic_scores + list(df_selected_topic['topic_score'][:k].values)
   
     return samples, topic_numbers, topic_words, topic_scores

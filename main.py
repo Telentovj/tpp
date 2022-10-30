@@ -304,7 +304,7 @@ if st.session_state["currentPage"] == "download_page":
     download_page = st.container()
     topic_model = st.session_state["topicModel"]
     number_of_topics = st.session_state["number_of_topics"]
-    # bow_corpus = st.session_state["bow_corpus"]
+    bow_corpus = st.session_state["bow_corpus"]
     docs = st.session_state["docs"]
     df = st.session_state["dataframe"]
     k = st.session_state["k"]
