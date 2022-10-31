@@ -1,4 +1,4 @@
-# BT4103 Sensemaking of Text Data for Pre-processing   
+# BT4103 Sensemaking of Text Data for Pre-processing
 
 ## Prerequisites
 
@@ -26,6 +26,7 @@ streamlit run main.py
 ├─ .streamlit
     ├─ config.toml ─ "Theme for frontend"
 ├─ similarity_metric (Backend)
+    ├─ rep_metric_cosine_similarity.py ─ "Calculation of similarity score & percentage"
 ├─ topic_models (Backend)
     ├─ data.py ─ "Data Loading, Preprocessing and Helper Functions"
     ├─ bertopic.py ─ "Bertopic Model Functions"
@@ -36,7 +37,7 @@ streamlit run main.py
 ├─ requirements.txt ─ "Python Dependencies"
 ```
 
-## Notes
+## <span style="color:red">Notes<span>
 
 - Uploading small datasets may result in undesired behaviour or errors for the topic models
 
