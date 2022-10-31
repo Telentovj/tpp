@@ -146,7 +146,7 @@ if st.session_state.currentPage == "main_page":
             number_of_topics = st.number_input(
                 "Insert number of Topics, decimals will be rounded down.",
                 min_value=1,
-                max_value=10,
+                max_value=999,
                 value=3,
             )
 
