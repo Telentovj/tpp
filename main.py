@@ -295,10 +295,14 @@ if st.session_state["currentPage"] == "insight_page":
             if st.session_state["model_decide_topics"]:
                 top2Vec_num_topics = top2vec.get_num_topics()
                 for i in range(top2Vec_num_topics):
+                    if i == 10:
+                        break
                     fig = printWordBar(top2vec, i)
                     top2vec_expander.plotly_chart(fig, use_container_width=True)
             else:
                 for i in range(number_of_topics):
+                    if i == 10:
+                        break
                     fig = printWordBarReduced(top2vec, i)
                     top2vec_expander.plotly_chart(fig, use_container_width=True)
 
@@ -394,6 +398,7 @@ if st.session_state["currentPage"] == "insight_page":
         if st.session_state["use_top2vec"]:
             if st.session_state["model_decide_topics"]:
                 df_all_top2vec = get_all_docs_top2vec(st.session_state["docs"], top2vec)
+                col2.write("Total number of topics found with Top2Vec: " + str(top2vec.get_num_topics()))
             else: 
                 df_all_top2vec = get_all_docs_top2vec_reduced(st.session_state["docs"], top2vec)
 
