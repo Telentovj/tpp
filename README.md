@@ -39,6 +39,3 @@ streamlit run main.py
 ## Notes
 
 - Uploading small datasets may result in undesired behaviour or errors for the topic models
-
-- If number of topics chosen is < 10, there would be empty graphs output for NMF.
-    This is expected behaviour.
