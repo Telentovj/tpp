@@ -188,7 +188,7 @@ if st.session_state.currentPage == "main_page":
                     col2.write("Running Top2Vec.....")
                     top2vec = runTop2Vec(docs)
                     st.session_state["top2vec"] = top2vec
-                    col3.write("Top2Vec Model Completed")
+                    col2.write("Top2Vec Model Completed")
 
                 insight1, insight2, insight3 = st.columns([1, 0.5, 1])
                 insight = insight2.button(
@@ -295,10 +295,14 @@ if st.session_state["currentPage"] == "insight_page":
             if st.session_state["model_decide_topics"]:
                 top2Vec_num_topics = top2vec.get_num_topics()
                 for i in range(top2Vec_num_topics):
+                    if i == 10:
+                        break
                     fig = printWordBar(top2vec, i)
                     top2vec_expander.plotly_chart(fig, use_container_width=True)
             else:
                 for i in range(number_of_topics):
+                    if i == 10:
+                        break
                     fig = printWordBarReduced(top2vec, i)
                     top2vec_expander.plotly_chart(fig, use_container_width=True)
 
@@ -383,7 +387,7 @@ if st.session_state["currentPage"] == "insight_page":
         if st.session_state["use_bert"]:
             if st.session_state["model_decide_topics"]:
                 num_topics = col1.write(
-                    "Number of topics decided by model: {}".format(get_number_of_topics_bert(bert))
+                    "Number of topics decided by Bert model: {}".format(get_number_of_topics_bert(bert))
                 )
 
             bert_similarity_score = col1.write(
@@ -399,6 +403,9 @@ if st.session_state["currentPage"] == "insight_page":
         if st.session_state["use_top2vec"]:
             if st.session_state["model_decide_topics"]:
                 df_all_top2vec = get_all_docs_top2vec(st.session_state["docs"], top2vec)
+                num_topics = col2.write(
+                    "Number of topics decided by Top2Vec model: {}".format(top2vec.get_num_topics())
+                )
             else: 
                 df_all_top2vec = get_all_docs_top2vec_reduced(st.session_state["docs"], top2vec)
 
