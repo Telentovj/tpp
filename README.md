@@ -37,8 +37,11 @@ streamlit run main.py
 ├─ requirements.txt ─ "Python Dependencies"
 ```
 
-## <span style="color:red">Notes<span>
+## Notes
 
 - Uploading small datasets may result in undesired behaviour or errors for the topic models
 
 - Do not click on -/+ for number of topics so fast as it may cause the page to refresh and revert to default settings
+
+- BERTopic may output lesser datapoints per topic than specified,
+    due to the method that BERTopic derives the representative documents for each topic
