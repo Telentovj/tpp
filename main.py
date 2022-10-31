@@ -335,35 +335,49 @@ if st.session_state["currentPage"] == "insight_page":
         # Similarity Scores
         col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
         if st.session_state["use_bert"]:
-            bert_similarity_score = st.write(
-                run_representative_sample_test(
-                    get_all_docs_bert(st.session_state["docs"], bert), bert_sample_df
+            bert_similarity_score = col1.write(
+                "Similarity Percentage: "
+                + "{:.2f}".format(
+                    run_representative_sample_test(
+                        get_all_docs_bert(st.session_state["docs"], bert),
+                        bert_sample_df,
+                    )[2]
                 )
+                + "%"
             )
         if st.session_state["use_top2vec"]:
-            top2vec_similarity_score = st.write()
+            top2vec_similarity_score = col2.write()
+
         if st.session_state["use_lda"]:
-            lda_similarity_score = st.write(
-                run_representative_sample_test(
-                    get_all_docs_lda(
-                        st.session_state["dataframe"],
-                        st.session_state["bow_corpus"],
-                        lda,
-                    ),
-                    lda_sample_df,
+            lda_similarity_score = col3.write(
+                "Similarity Percentage: "
+                + "{:.2f}".format(
+                    run_representative_sample_test(
+                        get_all_docs_lda(
+                            st.session_state["dataframe"],
+                            st.session_state["bow_corpus"],
+                            lda,
+                        ),
+                        lda_sample_df,
+                    )[2]
                 )
+                + "%"
             )
         if st.session_state["use_nmf"]:
-            nmf_similarity_score = st.write(
-                run_representative_sample_test(
-                    get_all_docs_nmf(
-                        st.session_state["docs"],
-                        st.session_state["W"],
-                        st.session_state["H"],
-                        st.session_state["tfidf_feature_names"],
-                    ),
-                    nmf_sample_df,
+            nmf_similarity_score = col4.write(
+                "Similarity Percentage: "
+                + "{:.2f}".format(
+                    run_representative_sample_test(
+                        get_all_docs_nmf(
+                            st.session_state["docs"],
+                            st.session_state["W"],
+                            st.session_state["H"],
+                            st.session_state["tfidf_feature_names"],
+                        ),
+                        nmf_sample_df,
+                    )[2]
                 )
+                + "%"
             )
 
         # Generate buttons to go to download sample csv
