@@ -324,7 +324,7 @@ if st.session_state["currentPage"] == "insight_page":
             tfidf_feature_names = st.session_state["tfidf_feature_names"]
             NMF_expander = st.expander("NMF")
             NMF_expander.pyplot(
-                plot_top_words(
+                plot_top_words_v2(
                     nmf,
                     tfidf_feature_names,
                     10,
