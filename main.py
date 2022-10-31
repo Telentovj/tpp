@@ -28,7 +28,14 @@ def change_page(page):
 
 # For input widget within insight page to get number of sample per topic
 def set_topic_model(model):
-    total_sample_size = st.session_state["number_of_topics"] * st.session_state["k"]
+    num_topics = 0
+    if not st.session_state["auto"]:
+        num_topics = st.session_state["number_of_topics"]
+    else: 
+        if model == "top2vec":
+            num_topics = st.session_state["top2vec_number_of_topics"]
+        #include bert check
+    total_sample_size = num_topics * st.session_state["k"]
     size_of_data_set = len(st.session_state["docs"])
     if total_sample_size < size_of_data_set:
         if st.session_state["k"]:
@@ -49,6 +56,7 @@ def set_model_usage(session_state_name, current_session_state_value):
         st.session_state[session_state_name] = False
     else:
         st.session_state[session_state_name] = True
+
 
 
 # Main page
@@ -75,8 +83,23 @@ if st.session_state.currentPage == "main_page":
             st.session_state["use_top2vec"] = True
         if "use_nmf" not in st.session_state:
             st.session_state["use_nmf"] = True
+        if "auto" not in st.session_state:
+            st.session_state["auto"] = False
 
         # Checkboxes for selecting which models to use
+        auto_generate = st.checkbox(
+            "Automatically generate topics", 
+            key="disable",
+            on_change=set_model_usage,
+            args=(
+                "auto",
+                st.session_state["auto"],
+            ),
+        )
+
+
+        
+
         use_bert, use_lda, use_top2vec, use_nmf = st.columns([1, 1, 1, 1])
         use_bert.checkbox(
             "Use Bert Model",
@@ -91,6 +114,7 @@ if st.session_state.currentPage == "main_page":
             "Use LDA Model",
             value=st.session_state["use_lda"],
             on_change=set_model_usage,
+            disabled=st.session_state.disable,
             args=(
                 "use_lda",
                 st.session_state["use_lda"],
@@ -109,79 +133,116 @@ if st.session_state.currentPage == "main_page":
             "Use NMF Model",
             value=st.session_state["use_nmf"],
             on_change=set_model_usage,
+            disabled=st.session_state.disable,
             args=(
                 "use_nmf",
                 st.session_state["use_nmf"],
             ),
         )
 
+        
+        
         # Input for number of topics
         number_of_topics = st.number_input(
             "Insert number of Topics, decimals will be rounded down.",
             min_value=1,
             max_value=10,
             value=3,
+            disabled=st.session_state.disable
         )
+
+        #if auto_generate:
+
+
 
         # File uploader
         uploaded_file = st.file_uploader("", type=["csv", "xlsx"], key="enabled")
 
         # add logic to ensure that number of topics is not None
         if uploaded_file is not None:
-            if number_of_topics:
+            if not auto_generate:
 
-                # Column for in progress text
-                col1, col2, col3, col4 = st.columns([0.25, 0.25, 0.25, 0.25])
+                if number_of_topics:
+
+                    # Column for in progress text
+                    col1, col2, col3, col4 = st.columns([0.25, 0.25, 0.25, 0.25])
+                    if st.session_state["use_bert"]:
+                        col1.write("Awaiting Bert Process to Begin")
+                    if st.session_state["use_lda"]:
+                        col2.write("Awaiting LDA  Process to Begin")
+                    if st.session_state["use_top2vec"]:
+                        col3.write("Awaiting Top2Vec Process to Begin")
+                    if st.session_state["use_nmf"]:
+                        col4.write("Awaiting NMF Process to Begin")
+
+                    number_of_topics = math.floor(number_of_topics)
+                    st.session_state["number_of_topics"] = number_of_topics
+
+                    df = load_data(uploaded_file, uploaded_file.name)
+                    df, docs, docs_tokenized = preprocess_data(df)
+                    st.session_state["dataframe"] = df
+                    st.session_state["docs"] = docs
+                    st.session_state["docs_tokenized"] = docs_tokenized
+
+                    # Bert logic
+                    if st.session_state["use_bert"]:
+                        col1.write("Running Bert.....")
+                        bert = run_bertopic(docs, number_of_topics)
+                        st.session_state["bert"] = bert
+                        col1.write("Bert Model Completed")
+
+                    # Lda logic
+                    if st.session_state['use_lda']:
+                        col2.write("Running LDA.....")
+                        lda_model, bow_corpus, dictionary = run_lda(docs_tokenized, number_of_topics)
+                        st.session_state["lda"] = lda_model
+                        st.session_state["bow_corpus"] = bow_corpus
+                        st.session_state["lda_dictionary"] = dictionary
+                        col2.write("LDA Model Completed")
+
+                    # top2vec logic
+                    if st.session_state['use_top2vec']:
+                        col3.write("Running Top2Vec.....")
+                        top2vec = runTop2Vec(docs)
+                        st.session_state["top2vec"] = top2vec
+                        runTop2VecReduced(top2vec, number_of_topics)
+                        col3.write("Top2Vec Model Completed")
+
+                    # nmf logic
+                    if st.session_state["use_nmf"]:
+                        col4.write("Running NMF.....")
+                        nmf, tfidf_feature_names = run_nmf(docs, number_of_topics)
+                        st.session_state["nmf"] = nmf
+                        st.session_state["tfidf_feature_names"] = tfidf_feature_names
+                        st.session_state["running_nmf"] = False
+                        col4.write("NMF Model Completed")
+
+                    insight1, insight2, insight3 = st.columns([1, 0.5, 1])
+                    insight = insight2.button(
+                        "Click here to focus on the insights that has be found!",
+                        on_click=change_page,
+                        args=("insight_page",),
+                    )
+            elif auto_generate:
+                col1, col2 = st.columns([0.5, 0.5])
                 if st.session_state["use_bert"]:
                     col1.write("Awaiting Bert Process to Begin")
-                if st.session_state["use_lda"]:
-                    col2.write("Awaiting LDA  Process to Begin")
+
                 if st.session_state["use_top2vec"]:
-                    col3.write("Awaiting Top2Vec Process to Begin")
-                if st.session_state["use_nmf"]:
-                    col4.write("Awaiting NMF Process to Begin")
-
-                number_of_topics = math.floor(number_of_topics)
-                st.session_state["number_of_topics"] = number_of_topics
-
+                    col2.write("Awaiting Top2Vec Process to Begin")
                 df = load_data(uploaded_file, uploaded_file.name)
                 df, docs, docs_tokenized = preprocess_data(df)
                 st.session_state["dataframe"] = df
                 st.session_state["docs"] = docs
                 st.session_state["docs_tokenized"] = docs_tokenized
 
-                # Bert logic
-                if st.session_state["use_bert"]:
-                    col1.write("Running Bert.....")
-                    bert = run_bertopic(docs, number_of_topics)
-                    st.session_state["bert"] = bert
-                    col1.write("Bert Model Completed")
+                if st.session_state['use_top2vec']:
+                    col2.write("Running Top2Vec.....")
+                    top2vec = runTop2Vec(docs)
+                    st.session_state["top2vec"] = top2vec
+                    col2.write("Top2Vec Model Completed")
 
-                # Lda logic
-                if st.session_state['use_lda']:
-                    col2.write("Running LDA.....")
-                    lda_model, bow_corpus, dictionary = run_lda(docs_tokenized, number_of_topics)
-                    st.session_state["lda"] = lda_model
-                    st.session_state["bow_corpus"] = bow_corpus
-                    st.session_state["lda_dictionary"] = dictionary
-                    col2.write("LDA Model Completed")
-
-                # top2vec logic
-                # if st.session_state['use_top2vec']:
-                # col3.write("Running Top2Vec.....")
-                # top2vec = runTop2Vec(docs)
-                # st.session_state["top2vec"] = top2vec
-                # runTop2VecReduced(top2vec, number_of_topics)
-                # col3.write("Top2Vec Model Completed")
-
-                # nmf logic
-                if st.session_state["use_nmf"]:
-                    col4.write("Running NMF.....")
-                    nmf, tfidf_feature_names = run_nmf(docs, number_of_topics)
-                    st.session_state["nmf"] = nmf
-                    st.session_state["tfidf_feature_names"] = tfidf_feature_names
-                    st.session_state["running_nmf"] = False
-                    col4.write("NMF Model Completed")
+                #insert bert auto topic finder
 
                 insight1, insight2, insight3 = st.columns([1, 0.5, 1])
                 insight = insight2.button(
@@ -189,6 +250,7 @@ if st.session_state.currentPage == "main_page":
                     on_click=change_page,
                     args=("insight_page",),
                 )
+
             else:
                 st.warning("Please insert the number of topics.")
 
@@ -208,7 +270,13 @@ if st.session_state["currentPage"] == "faq_page":
 # Insights page
 if st.session_state["currentPage"] == "insight_page":
     insight_page = st.container()
-    number_of_topics = st.session_state["number_of_topics"]
+    if not st.session_state["auto"]:
+        number_of_topics = st.session_state["number_of_topics"]
+        st.session_state["top2vec_number_of_topics"] = number_of_topics
+        #include bert num of topics
+    else:
+        st.session_state["top2vec_number_of_topics"] = st.session_state['top2vec'].get_num_topics()
+        #include bert num of topics
 
     with insight_page:
 
@@ -227,37 +295,45 @@ if st.session_state["currentPage"] == "insight_page":
             )
 
         # Top2Vec
-        # if st.session_state['use_top2vec']:
-        # top2vec = st.session_state['top2vec']
-        # top2vec_expander = st.expander("Top2Vec")
-        # for i in range(number_of_topics):
-        #     fig = printWordBar(top2vec, i)
-        #     top2vec_expander.plotly_chart(fig, use_container_width=True)
+        if st.session_state['use_top2vec']:
+            top2vec = st.session_state['top2vec']
+            top2vec_expander = st.expander("Top2Vec")
+            number_of_topics = st.session_state["top2vec_number_of_topics"]
+            if not st.session_state["auto"]:
+                for i in range(number_of_topics):
+                    fig = printWordBarReduced(top2vec, i)
+                    top2vec_expander.plotly_chart(fig, use_container_width=True)
+            else:
+                for i in range(number_of_topics):
+                    fig = printWordBar(top2vec, i)
+                    top2vec_expander.plotly_chart(fig, use_container_width=True)
 
         # LDA
-        if st.session_state['use_lda']:
-            lda = st.session_state['lda']
-            with st.expander("LDA"):
-                col1, col2, col3 = st.columns([0.5, 0.1, 0.5])
-                components.html(visualize_chart_lda(
-                    lda,
-                    st.session_state['bow_corpus'],
-                    st.session_state['lda_dictionary']
-                ), width=1300, height=800, scrolling=True)
+        if not st.session_state["auto"]:
+            if st.session_state['use_lda']:
+                lda = st.session_state['lda']
+                with st.expander("LDA"):
+                    col1, col2, col3 = st.columns([0.5, 0.1, 0.5])
+                    components.html(visualize_chart_lda(
+                        lda,
+                        st.session_state['bow_corpus'],
+                        st.session_state['lda_dictionary']
+                    ), width=1300, height=800, scrolling=True)
 
         # NMF
-        if st.session_state["use_nmf"]:
-            nmf = st.session_state["nmf"]
-            tfidf_feature_names = st.session_state["tfidf_feature_names"]
-            NMF_expander = st.expander("NMF")
-            NMF_expander.pyplot(
-                plot_top_words(
-                    nmf,
-                    tfidf_feature_names,
-                    10,
-                    "Topics in NMF model (KL Divergence Loss)",
+        
+            if st.session_state["use_nmf"]:
+                nmf = st.session_state["nmf"]
+                tfidf_feature_names = st.session_state["tfidf_feature_names"]
+                NMF_expander = st.expander("NMF")
+                NMF_expander.pyplot(
+                    plot_top_words(
+                        nmf,
+                        tfidf_feature_names,
+                        10,
+                        "Topics in NMF model (KL Divergence Loss)",
+                    )
                 )
-            )
 
         # Ask for how many datapoints you want her topic, k.
         k = st.number_input(
@@ -276,12 +352,12 @@ if st.session_state["currentPage"] == "insight_page":
             args=("bert",),
             disabled=(st.session_state["use_bert"] == False),
         )
-        # generate_with_top2vec = col2.button(
-        #                             "Generate dataset with Top2Vec",
-        #                             on_click=set_topic_model,
-        #                             args=("top2vec",),
-        #                             disabled=(st.session_state['use_top2vec'] == False),
-        #                         )
+        generate_with_top2vec = col2.button(
+            "Generate dataset with Top2Vec",
+            on_click=set_topic_model,
+            args=("top2vec",),
+            disabled=(st.session_state['use_top2vec'] == False),
+        )
         generate_with_lda = col3.button(
                                 "Generate dataset with LDA",
                                 on_click=set_topic_model,
@@ -303,8 +379,12 @@ if st.session_state["currentPage"] == "insight_page":
 if st.session_state["currentPage"] == "download_page":
     download_page = st.container()
     topic_model = st.session_state["topicModel"]
-    number_of_topics = st.session_state["number_of_topics"]
-    # bow_corpus = st.session_state["bow_corpus"]
+    number_of_topics = 0
+    if not st.session_state["auto"]:
+        number_of_topics = st.session_state["number_of_topics"]
+
+
+    bow_corpus = st.session_state["bow_corpus"]
     docs = st.session_state["docs"]
     df = st.session_state["dataframe"]
     k = st.session_state["k"]
@@ -314,10 +394,13 @@ if st.session_state["currentPage"] == "download_page":
         df = get_top_docs_bert(df, bert, k)
         labeled_csv = df_to_csv(df)
 
-    # if topic_model == "top2vec" and st.session_state['use_top2vec']:
-    #     top2vec = st.session_state['top2vec']
-    #     samples = get_top_documents_Top2Vec(df, top2vec, number_of_topics, k)
-    #     labeled_csv = samples_to_csv(samples)
+    if topic_model == "top2vec" and st.session_state['use_top2vec']:
+        top2vec = st.session_state['top2vec']
+        if not st.session_state["auto"]:
+            df = get_top_documents_Top2Vec_reduced(df, top2vec, number_of_topics, k)
+        else:
+            df = get_top_documents_Top2Vec(df, top2vec, st.session_state["top2vec_number_of_topics"], k)
+        labeled_csv = df_to_csv(df)
 
     if topic_model == "lda" and st.session_state['use_lda']:
         lda = st.session_state['lda']
