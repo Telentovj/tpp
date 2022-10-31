@@ -27,7 +27,7 @@ def run_bertopic(docs, num_topics):
     )
 
     topics, probabilities = model.fit_transform(docs)
-
+    
     return model
 
 
@@ -55,6 +55,16 @@ def run_bertopic_auto(docs):
     topics, probabilities = model.fit_transform(docs)
 
     return model
+
+def get_number_of_topics_bert(model):
+    """
+    Args:
+    - model: bertopic model
+
+    Returns:
+    - Number of topics (-1 because noise is also counted as a topic)
+    """
+    return len(model.get_topics()) - 1
 
 
 def get_top_docs_bert(df, model, k):

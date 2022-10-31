@@ -384,6 +384,11 @@ if st.session_state["currentPage"] == "insight_page":
         # Similarity Scores
         col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
         if st.session_state["use_bert"]:
+            if st.session_state["model_decide_topics"]:
+                num_topics = col1.write(
+                    "Number of topics decided by model: {}".format(get_number_of_topics_bert(bert))
+                )
+
             bert_similarity_score = col1.write(
                 "Similarity Percentage: "
                 + "{:.2f}".format(
