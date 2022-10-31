@@ -20,7 +20,33 @@ def run_bertopic(docs, num_topics):
     vectorizer_model = CountVectorizer(stop_words="english")
 
     model = BERTopic(
+        top_n_words=10,
         nr_topics=num_topics,
+        vectorizer_model=vectorizer_model,
+        ctfidf_model=ctfidf_model,
+    )
+
+    topics, probabilities = model.fit_transform(docs)
+
+    return model
+
+def run_bertopic_auto(docs):
+    """
+    Runs BERTopic on provided documents (docs) and outputs topics (num_topics)
+
+    Args:
+    docs -> List of documents
+
+    Returns:
+    - Trained "model" that can be used to return visualizations and stats
+    """
+    ctfidf_model = ClassTfidfTransformer(reduce_frequent_words=True)
+
+    vectorizer_model = CountVectorizer(stop_words="english")
+
+    model = BERTopic(
+        top_n_words=10,
+        nr_topics="auto",
         vectorizer_model=vectorizer_model,
         ctfidf_model=ctfidf_model,
     )

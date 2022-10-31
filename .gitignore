@@ -1,4 +1,5 @@
 /topic_models/datasets
 /topic_models/__pycache__
+/similarity_metric/__pycache__
 
 .DS_Store
