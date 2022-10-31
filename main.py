@@ -188,7 +188,7 @@ if st.session_state.currentPage == "main_page":
                     col2.write("Running Top2Vec.....")
                     top2vec = runTop2Vec(docs)
                     st.session_state["top2vec"] = top2vec
-                    col2.write("Top2Vec Model Completed")
+                    col3.write("Top2Vec Model Completed")
 
                 insight1, insight2, insight3 = st.columns([1, 0.5, 1])
                 insight = insight2.button(
@@ -403,7 +403,6 @@ if st.session_state["currentPage"] == "insight_page":
         if st.session_state["use_top2vec"]:
             if st.session_state["model_decide_topics"]:
                 df_all_top2vec = get_all_docs_top2vec(st.session_state["docs"], top2vec)
-                col2.write("Number of topics decided by Top2Vec model: {}".format(top2vec.get_num_topics()))
             else: 
                 df_all_top2vec = get_all_docs_top2vec_reduced(st.session_state["docs"], top2vec)
 
