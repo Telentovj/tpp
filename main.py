@@ -188,7 +188,7 @@ if st.session_state.currentPage == "main_page":
                     col2.write("Running Top2Vec.....")
                     top2vec = runTop2Vec(docs)
                     st.session_state["top2vec"] = top2vec
-                    col3.write("Top2Vec Model Completed")
+                    col2.write("Top2Vec Model Completed")
 
                 insight1, insight2, insight3 = st.columns([1, 0.5, 1])
                 insight = insight2.button(
