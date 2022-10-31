@@ -97,16 +97,3 @@ def get_all_docs_bert(docs, model):
     """
     data = {"doc": docs, "topic_label": model.topics_}
     return pd.DataFrame(data)
-
-
-def df_to_csv(df):
-    """
-    Converts pandas dataframe to csv for streamlit
-
-    Args:
-    - df: pandas dataframe
-
-    Returns:
-    - CSV object
-    """
-    return df.to_csv(index=False).encode("utf-8")

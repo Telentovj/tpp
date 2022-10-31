@@ -39,3 +39,5 @@ streamlit run main.py
 ## Notes
 
 - Uploading small datasets may result in undesired behaviour or errors for the topic models
+
+- Do not click on -/+ for number of topics so fast as it may cause the page to refresh and revert to default settings

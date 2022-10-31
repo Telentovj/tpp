@@ -161,4 +161,4 @@ def df_to_csv(df):
     Returns:
     - CSV object
     """
-    return df.to_csv(index=False).encode("utf-8")
+    return df.to_csv(index=False).encode("utf-8-sig")
