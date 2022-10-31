@@ -163,7 +163,7 @@ if st.session_state.currentPage == "main_page":
 
         # add logic to ensure that number of topics is not None
         if uploaded_file is not None:
-            if number_of_topics:
+            if number_of_topics or st.session_state["model_decide_topics"]:
 
                 # Column for in progress text
                 col1, col2, col3, col4 = st.columns([0.25, 0.25, 0.25, 0.25])
@@ -339,6 +339,16 @@ if st.session_state["currentPage"] == "insight_page":
         col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
         if st.session_state["use_bert"]:
             bert_similarity_score = col1.write(
+                "Similarity Score: "
+                + "{:.2f}".format(
+                    run_representative_sample_test(
+                        get_all_docs_bert(st.session_state["docs"], bert),
+                        bert_sample_df,
+                    )[1]
+                )
+            )
+            
+            bert_similarity_percentage = col1.write(
                 "Similarity Percentage: "
                 + "{:.2f}".format(
                     run_representative_sample_test(
@@ -348,11 +358,27 @@ if st.session_state["currentPage"] == "insight_page":
                 )
                 + "%"
             )
+
+            
         if st.session_state["use_top2vec"]:
             top2vec_similarity_score = col2.write()
 
         if st.session_state["use_lda"]:
             lda_similarity_score = col3.write(
+                "Similarity Score: "
+                + "{:.2f}".format(
+                    run_representative_sample_test(
+                        get_all_docs_lda(
+                            st.session_state["dataframe"],
+                            st.session_state["bow_corpus"],
+                            lda,
+                        ),
+                        lda_sample_df,
+                    )[1]
+                )
+            )
+
+            lda_similarity_percentage = col3.write(
                 "Similarity Percentage: "
                 + "{:.2f}".format(
                     run_representative_sample_test(
@@ -366,8 +392,25 @@ if st.session_state["currentPage"] == "insight_page":
                 )
                 + "%"
             )
+
+            
         if st.session_state["use_nmf"]:
             nmf_similarity_score = col4.write(
+                "Similarity Score: "
+                + "{:.2f}".format(
+                    run_representative_sample_test(
+                        get_all_docs_nmf(
+                            st.session_state["docs"],
+                            st.session_state["W"],
+                            st.session_state["H"],
+                            st.session_state["tfidf_feature_names"],
+                        ),
+                        nmf_sample_df,
+                    )[1]
+                )
+            )
+
+            nmf_similarity_percentage = col4.write(
                 "Similarity Percentage: "
                 + "{:.2f}".format(
                     run_representative_sample_test(
