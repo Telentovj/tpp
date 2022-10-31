@@ -275,7 +275,8 @@ if st.session_state["currentPage"] == "insight_page":
 
         # WordCloud
         word_cloud_expander = st.expander("Word cloud for entire dataset")
-        word_cloud_expander.pyplot(wordcloud(st.session_state["docs_tokenized"]))
+        col1, col2, col3 = st.columns([1, 1, 1])
+        col2.pyplot(wordcloud(st.session_state["docs_tokenized"]))
 
         # BERT
         if st.session_state["use_bert"]:
