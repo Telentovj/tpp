@@ -43,10 +43,7 @@ def get_all_docs_lda(df, bow_corpus, model):
         for bow in bow_corpus
     ]
 
-    new_df = pd.DataFrame({
-        "doc": df.text,
-        "topic_label": topic_label
-    })
+    new_df = pd.DataFrame({"doc": df.text, "topic_label": topic_label})
 
     return new_df
 

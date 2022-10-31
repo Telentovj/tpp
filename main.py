@@ -184,7 +184,7 @@ if st.session_state.currentPage == "main_page":
                     col1.write("Bert Model Completed")
 
                 # top2vec logic
-                if st.session_state['use_top2vec']:
+                if st.session_state["use_top2vec"]:
                     col2.write("Running Top2Vec.....")
                     top2vec = runTop2Vec(docs)
                     st.session_state["top2vec"] = top2vec
@@ -238,7 +238,7 @@ if st.session_state.currentPage == "main_page":
                     col2.write("LDA Model Completed")
 
                 # top2vec logic
-                if st.session_state['use_top2vec']:
+                if st.session_state["use_top2vec"]:
                     col3.write("Running Top2Vec.....")
                     top2vec = runTop2Vec(docs)
                     runTop2VecReduced(top2vec, number_of_topics)
@@ -289,8 +289,8 @@ if st.session_state["currentPage"] == "insight_page":
             )
 
         # Top2Vec
-        if st.session_state['use_top2vec']:
-            top2vec = st.session_state['top2vec']
+        if st.session_state["use_top2vec"]:
+            top2vec = st.session_state["top2vec"]
             top2vec_expander = st.expander("Top2Vec")
             if st.session_state["model_decide_topics"]:
                 top2Vec_num_topics = top2vec.get_num_topics()
@@ -301,7 +301,6 @@ if st.session_state["currentPage"] == "insight_page":
                 for i in range(number_of_topics):
                     fig = printWordBarReduced(top2vec, i)
                     top2vec_expander.plotly_chart(fig, use_container_width=True)
-
 
         # LDA
         if st.session_state["use_lda"]:
@@ -348,12 +347,16 @@ if st.session_state["currentPage"] == "insight_page":
             bert_sample_df = get_top_docs_bert(st.session_state["dataframe"], bert, k)
             bert_labeled_csv = df_to_csv(bert_sample_df)
 
-        if st.session_state['use_top2vec']:
-            top2vec = st.session_state['top2vec']
+        if st.session_state["use_top2vec"]:
+            top2vec = st.session_state["top2vec"]
             if st.session_state["model_decide_topics"]:
-                top2vec_sample_df = get_top_documents_Top2Vec(st.session_state["dataframe"], top2vec, top2vec.get_num_topics(), k)
+                top2vec_sample_df = get_top_documents_Top2Vec(
+                    st.session_state["dataframe"], top2vec, top2vec.get_num_topics(), k
+                )
             else:
-                top2vec_sample_df = get_top_documents_Top2Vec_reduced(st.session_state["dataframe"], top2vec, number_of_topics, k)
+                top2vec_sample_df = get_top_documents_Top2Vec_reduced(
+                    st.session_state["dataframe"], top2vec, number_of_topics, k
+                )
             top2vec_labeled_csv = df_to_csv(top2vec_sample_df)
 
         if st.session_state["use_lda"]:
@@ -394,8 +397,10 @@ if st.session_state["currentPage"] == "insight_page":
         if st.session_state["use_top2vec"]:
             if st.session_state["model_decide_topics"]:
                 df_all_top2vec = get_all_docs_top2vec(st.session_state["docs"], top2vec)
-            else: 
-                df_all_top2vec = get_all_docs_top2vec_reduced(st.session_state["docs"], top2vec)
+            else:
+                df_all_top2vec = get_all_docs_top2vec_reduced(
+                    st.session_state["docs"], top2vec
+                )
 
             top2vec_similarity_score = col2.write(
                 "Similarity Percentage: "
@@ -455,7 +460,7 @@ if st.session_state["currentPage"] == "insight_page":
                 data=top2vec_labeled_csv,
                 file_name="top2vec_output.csv",
                 mime="text/csv",
-            )    
+            )
         if st.session_state["use_lda"]:
             generate_with_lda = col3.download_button(
                 label="Download dataset generated with LDA",

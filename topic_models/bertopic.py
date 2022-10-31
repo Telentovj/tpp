@@ -30,6 +30,7 @@ def run_bertopic(docs, num_topics):
 
     return model
 
+
 def run_bertopic_auto(docs):
     """
     Runs BERTopic on provided documents (docs) and outputs topics (num_topics)
@@ -85,15 +86,16 @@ def get_top_docs_bert(df, model, k):
     data = {"doc": samples, "topic_label": topic_labels, "topic_words": topic_words}
     return pd.DataFrame(data)
 
+
 def get_all_docs_bert(docs, model):
     """
-        Args:
-        - docs: List of documents
-        - model: bertopic model
+    Args:
+    - docs: List of documents
+    - model: bertopic model
 
-        Returns:
-        - Dataframe with columns 'doc', 'topic_label'. This is all docs from the dataset (docs)    
-        If topic label is -1 then it means it was classified as noise
+    Returns:
+    - Dataframe with columns 'doc', 'topic_label'. This is all docs from the dataset (docs)
+    If topic label is -1 then it means it was classified as noise
     """
     data = {"doc": docs, "topic_label": model.topics_}
     return pd.DataFrame(data)
