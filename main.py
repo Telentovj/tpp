@@ -263,7 +263,7 @@ if st.session_state.currentPage == "main_page":
                     args=("insight_page",),
                 )
             else:
-                st.warning("Please insert the number of topics.")
+                st.warning("Please insert the number of topics.g")
 
 # Insights page
 if st.session_state["currentPage"] == "insight_page":
@@ -396,10 +396,21 @@ if st.session_state["currentPage"] == "insight_page":
                     run_representative_sample_test(
                         get_all_docs_bert(st.session_state["docs"], bert),
                         bert_sample_df,
+                    )[1]
+                )
+            )
+
+            bert_similarity_percentage = col1.write(
+                "Similarity Percentage: "
+                + "{:.2f}".format(
+                    run_representative_sample_test(
+                        get_all_docs_bert(st.session_state["docs"], bert),
+                        bert_sample_df,
                     )[2]
                 )
                 + "%"
             )
+
         if st.session_state["use_top2vec"]:
             if st.session_state["model_decide_topics"]:
                 df_all_top2vec = get_all_docs_top2vec(st.session_state["docs"], top2vec)
@@ -415,6 +426,16 @@ if st.session_state["currentPage"] == "insight_page":
                     run_representative_sample_test(
                         df_all_top2vec,
                         top2vec_sample_df,
+                    )[1]
+                )
+            )
+
+            top2vec_similarity_percentage = col2.write(
+                "Similarity Percentage: "
+                + "{:.2f}".format(
+                    run_representative_sample_test(
+                        df_all_top2vec,
+                        top2vec_sample_df,
                     )[2]
                 )
                 + "%"
@@ -422,6 +443,20 @@ if st.session_state["currentPage"] == "insight_page":
 
         if st.session_state["use_lda"]:
             lda_similarity_score = col3.write(
+                "Similarity Score: "
+                + "{:.2f}".format(
+                    run_representative_sample_test(
+                        get_all_docs_lda(
+                            st.session_state["dataframe"],
+                            st.session_state["bow_corpus"],
+                            lda,
+                        ),
+                        lda_sample_df,
+                    )[1]
+                )
+            )
+
+            lda_similarity_percentage = col3.write(
                 "Similarity Percentage: "
                 + "{:.2f}".format(
                     run_representative_sample_test(
@@ -435,9 +470,10 @@ if st.session_state["currentPage"] == "insight_page":
                 )
                 + "%"
             )
+
         if st.session_state["use_nmf"]:
             nmf_similarity_score = col4.write(
-                "Similarity Percentage: "
+                "Similarity Score: "
                 + "{:.2f}".format(
                     run_representative_sample_test(
                         get_all_docs_nmf(
@@ -447,9 +483,24 @@ if st.session_state["currentPage"] == "insight_page":
                             st.session_state["tfidf_feature_names"],
                         ),
                         nmf_sample_df,
-                    )[2]
+                    )[1]
                 )
-                + "%"
+            )
+
+            nmf_similarity_percentage = col4.write(
+            "Similarity Percentage: "
+            + "{:.2f}".format(
+                run_representative_sample_test(
+                    get_all_docs_nmf(
+                        st.session_state["docs"],
+                        st.session_state["W"],
+                        st.session_state["H"],
+                        st.session_state["tfidf_feature_names"],
+                    ),
+                    nmf_sample_df,
+                )[2]
+            )
+            + "%"
             )
 
         # Generate buttons to go to download sample csv
