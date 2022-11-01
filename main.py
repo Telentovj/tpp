@@ -421,7 +421,7 @@ if st.session_state["currentPage"] == "insight_page":
                 df_all_top2vec = get_all_docs_top2vec_reduced(st.session_state["docs"], top2vec)
 
             top2vec_similarity_score = col2.write(
-                "Similarity Percentage: "
+                "Similarity Score: "
                 + "{:.2f}".format(
                     run_representative_sample_test(
                         df_all_top2vec,
