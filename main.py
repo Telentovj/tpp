@@ -391,7 +391,7 @@ if st.session_state["currentPage"] == "insight_page":
                 )
 
             bert_similarity_score = col1.write(
-                "Similarity Percentage: "
+                "Similarity Score: "
                 + "{:.2f}".format(
                     run_representative_sample_test(
                         get_all_docs_bert(st.session_state["docs"], bert),
