@@ -222,7 +222,10 @@ if st.session_state.currentPage == "main_page":
                 # Bert logic
                 if st.session_state["use_bert"]:
                     col1.write("Running Bert.....")
-                    bert = run_bertopic(docs, number_of_topics)
+                    if st.session_state["model_decide_topics"]:
+                        bert = run_bertopic_auto(docs)
+                    else:
+                        bert = run_bertopic(docs, number_of_topics)
                     st.session_state["bert"] = bert
                     col1.write("Bert Model Completed")
 
