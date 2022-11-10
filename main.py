@@ -94,7 +94,7 @@ if st.session_state.currentPage == "main_page":
         # Checkboxes for selecting which models to use
         use_bert, use_lda, use_top2vec, use_nmf = st.columns([1, 1, 1, 1])
         use_bert.checkbox(
-            "Use Bert Model",
+            "Use BERTopic Model",
             value=st.session_state["use_bert"],
             on_change=set_model_usage,
             args=(

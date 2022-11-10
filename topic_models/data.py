@@ -55,7 +55,7 @@ def _clean_data(df):
     - Cleaned text in the form of a pandas dataframe with row number and text
     """
     df["text"] = df["text"].str.lower()
-    df["text"] = df["text"].replace("na", None)
+    df["text"] = df["text"].replace("na", np.nan)
     text = df[~df["text"].isna()][["text"]]
 
     # Remove @, # and links
