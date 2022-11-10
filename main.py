@@ -152,7 +152,7 @@ if st.session_state.currentPage == "main_page":
 
         # Allow model to decide number of topics
         st.checkbox(
-            "Allow model to decide number of topics. Note that only the Top2Vec and Bert allow this feature.",
+            "Allow model to decide number of topics. Note that only the Top2Vec and BERTopic allow this feature.",
             value=st.session_state["model_decide_topics"],
             on_change=allow_model_to_decide,
             args=(st.session_state["model_decide_topics"],),
@@ -166,7 +166,7 @@ if st.session_state.currentPage == "main_page":
             if st.session_state["model_decide_topics"]:
                 col1, col2 = st.columns([0.5, 0.5])
                 if st.session_state["use_bert"]:
-                    col1.write("Awaiting Bert Process to Begin")
+                    col1.write("Awaiting BERTopic Process to Begin")
                 if st.session_state["use_top2vec"]:
                     col2.write("Awaiting Top2Vec Process to Begin")
 
@@ -178,10 +178,10 @@ if st.session_state.currentPage == "main_page":
 
                 # Bert logic
                 if st.session_state["use_bert"]:
-                    col1.write("Running Bert.....")
+                    col1.write("Running BERTopic.....")
                     bert = run_bertopic_auto(docs)
                     st.session_state["bert"] = bert
-                    col1.write("Bert Model Completed")
+                    col1.write("BERTopic Model Completed")
 
                 # top2vec logic
                 if st.session_state['use_top2vec']:
@@ -202,7 +202,7 @@ if st.session_state.currentPage == "main_page":
                 # Column for in progress text
                 col1, col2, col3, col4 = st.columns([0.25, 0.25, 0.25, 0.25])
                 if st.session_state["use_bert"]:
-                    col1.write("Awaiting Bert Process to Begin")
+                    col1.write("Awaiting BERTopic Process to Begin")
                 if st.session_state["use_lda"]:
                     col2.write("Awaiting LDA  Process to Begin")
                 if st.session_state["use_top2vec"]:
@@ -221,13 +221,13 @@ if st.session_state.currentPage == "main_page":
 
                 # Bert logic
                 if st.session_state["use_bert"]:
-                    col1.write("Running Bert.....")
+                    col1.write("Running BERTopic.....")
                     if st.session_state["model_decide_topics"]:
                         bert = run_bertopic_auto(docs)
                     else:
                         bert = run_bertopic(docs, number_of_topics)
                     st.session_state["bert"] = bert
-                    col1.write("Bert Model Completed")
+                    col1.write("BERTopic Model Completed")
 
                 # Lda logic
                 if st.session_state["use_lda"]:
@@ -284,7 +284,7 @@ if st.session_state["currentPage"] == "insight_page":
         # BERT
         if st.session_state["use_bert"]:
             bert = st.session_state["bert"]
-            bert_expander = st.expander("Bert")
+            bert_expander = st.expander("BERTopic")
             bert_expander.write(
                 bert.visualize_barchart().update_layout(
                     autosize=False, width=670, height=400
@@ -390,7 +390,7 @@ if st.session_state["currentPage"] == "insight_page":
         if st.session_state["use_bert"]:
             if st.session_state["model_decide_topics"]:
                 num_topics = col1.write(
-                    "Number of topics decided by Bert model: {}".format(get_number_of_topics_bert(bert))
+                    "Number of topics decided by BERTopic model: {}".format(get_number_of_topics_bert(bert))
                 )
 
             bert_similarity_score = col1.write(
@@ -510,9 +510,9 @@ if st.session_state["currentPage"] == "insight_page":
         col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
         if st.session_state["use_bert"]:
             generate_with_bert = col1.download_button(
-                label="Download dataset generated with bert",
+                label="Download dataset generated with BERTopic",
                 data=bert_labeled_csv,
-                file_name="bert_output.csv",
+                file_name="bertopic_output.csv",
                 mime="text/csv",
             )
         if st.session_state["use_top2vec"]:
